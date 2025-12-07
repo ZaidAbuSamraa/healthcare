@@ -1,0 +1,21 @@
+{
+  "name": "healthpal",
+  "version": "1.0.0",
+  "description": "HealthPal - Digital Healthcare Platform for Palestinians",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "server": "node src/server.js",
+    "cli": "node src/cli.js",
+    "setup-db": "node src/database/setup.js"
+  },
+  "keywords": ["healthcare", "telemedicine", "consultations"],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.18.2",
+    "mysql2": "^3.6.0",
+    "dotenv": "^16.3.1",
+    "readline": "^1.3.0"
+  }
+}
