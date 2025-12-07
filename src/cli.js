@@ -58,7 +58,7 @@ function clearScreen() {
 function printHeader() {
     console.log('\n╔══════════════════════════════════════════════════════════════╗');
     console.log('║                    HealthPal CLI                             ║');
-    console.log('║           Remote Medical Consultations Platform              ║');
+    console.log('║     Remote Medical Consultations & Sponsorship Platform      ║');
     console.log('╚══════════════════════════════════════════════════════════════╝\n');
 }
 
@@ -66,10 +66,17 @@ function printWelcomeMenu() {
     console.log('┌──────────────────────────────────────────────────────────────┐');
     console.log('│                      WELCOME                                 │');
     console.log('├──────────────────────────────────────────────────────────────┤');
+    console.log('│  === Medical Consultations ===                               │');
     console.log('│  1. Register as Patient                                      │');
     console.log('│  2. Register as Doctor                                       │');
     console.log('│  3. Login as Patient                                         │');
     console.log('│  4. Login as Doctor                                          │');
+    console.log('│                                                              │');
+    console.log('│  === Medical Sponsorship ===                                 │');
+    console.log('│  5. Register as Donor                                        │');
+    console.log('│  6. Login as Donor                                           │');
+    console.log('│  7. Browse Medical Cases (Guest)                             │');
+    console.log('│                                                              │');
     console.log('│  0. Exit                                                     │');
     console.log('└──────────────────────────────────────────────────────────────┘');
 }
@@ -228,6 +235,7 @@ function printPatientMenu() {
     console.log('┌──────────────────────────────────────────────────────────────┐');
     console.log('│                    PATIENT MENU                              │');
     console.log('├──────────────────────────────────────────────────────────────┤');
+    console.log('│  === Consultations ===                                       │');
     console.log('│  1. View Available Doctors                                   │');
     console.log('│  2. View Doctors by Specialty                                │');
     console.log('│  3. Book a Consultation                                      │');
@@ -235,8 +243,13 @@ function printPatientMenu() {
     console.log('│  5. View Consultation Details                                │');
     console.log('│  6. Send Message to Doctor                                   │');
     console.log('│  7. View Messages                                            │');
-    console.log('│  8. View My Profile                                          │');
-    console.log('│  9. Logout                                                   │');
+    console.log('│                                                              │');
+    console.log('│  === Medical Sponsorship ===                                 │');
+    console.log('│  8. Request Medical Sponsorship                              │');
+    console.log('│  9. View My Sponsorship Cases                                │');
+    console.log('│                                                              │');
+    console.log('│  10. View My Profile                                         │');
+    console.log('│  11. Logout                                                  │');
     console.log('│  0. Exit                                                     │');
     console.log('└──────────────────────────────────────────────────────────────┘');
 }
@@ -715,7 +728,7 @@ async function viewMyProfile() {
         console.log(`  Gender: ${currentUser.gender || 'Not provided'}`);
         console.log(`  Language: ${currentUser.language_preference}`);
         console.log(`  Medical History: ${currentUser.medical_history || 'None'}`);
-    } else {
+    } else if (currentUserType === 'doctor') {
         console.log(`  Name: Dr. ${currentUser.name}`);
         console.log(`  Email: ${currentUser.email}`);
         console.log(`  Phone: ${currentUser.phone || 'Not provided'}`);
@@ -725,6 +738,14 @@ async function viewMyProfile() {
         console.log(`  Status: ${currentUser.availability_status}`);
         console.log(`  Experience: ${currentUser.years_of_experience} years`);
         console.log(`  Bio: ${currentUser.bio || 'Not provided'}`);
+    } else if (currentUserType === 'donor') {
+        console.log(`  Name: ${currentUser.name}`);
+        console.log(`  Email: ${currentUser.email}`);
+        console.log(`  Phone: ${currentUser.phone || 'Not provided'}`);
+        console.log(`  Country: ${currentUser.country || 'Not provided'}`);
+        console.log(`  Organization: ${currentUser.organization || 'Individual'}`);
+        console.log(`  Total Donated: $${currentUser.total_donated}`);
+        console.log(`  Anonymous: ${currentUser.is_anonymous ? 'Yes' : 'No'}`);
     }
 }
 
@@ -913,6 +934,175 @@ async function updateMyAvailability() {
     }
 }
 
+// Patient Sponsorship Functions
+async function requestMedicalSponsorship() {
+    console.log('\n┌──────────────────────────────────────────────────────────────┐');
+    console.log('│            REQUEST MEDICAL SPONSORSHIP                       │');
+    console.log('└──────────────────────────────────────────────────────────────┘\n');
+    
+    const title = await prompt('Case Title (e.g., "Heart Surgery Needed"): ');
+    
+    console.log('\nSelect Treatment Type:');
+    console.log('  1. Surgery');
+    console.log('  2. Cancer Treatment');
+    console.log('  3. Dialysis');
+    console.log('  4. Physical Rehabilitation');
+    console.log('  5. Medication');
+    console.log('  6. Other');
+    
+    const typeChoice = await prompt('\nEnter choice (1-6): ');
+    const treatmentTypes = {
+        '1': 'surgery',
+        '2': 'cancer_treatment',
+        '3': 'dialysis',
+        '4': 'physical_rehabilitation',
+        '5': 'medication',
+        '6': 'other'
+    };
+    const treatment_type = treatmentTypes[typeChoice];
+    
+    if (!treatment_type) {
+        console.log('\n❌ Invalid treatment type.');
+        return;
+    }
+    
+    const description = await prompt('\nDescribe your medical condition and treatment needs:\n> ');
+    
+    const goalStr = await prompt('\nFunding Goal Amount ($): ');
+    const goal_amount = parseFloat(goalStr);
+    
+    if (isNaN(goal_amount) || goal_amount <= 0) {
+        console.log('\n❌ Invalid amount.');
+        return;
+    }
+    
+    console.log('\nUrgency Level:');
+    console.log('  1. Low - Can wait several months');
+    console.log('  2. Medium - Needed within weeks');
+    console.log('  3. High - Needed urgently');
+    console.log('  4. Critical - Life-threatening, immediate need');
+    
+    const urgencyChoice = await prompt('\nEnter choice (1-4): ');
+    const urgencyLevels = {
+        '1': 'low',
+        '2': 'medium',
+        '3': 'high',
+        '4': 'critical'
+    };
+    const urgency_level = urgencyLevels[urgencyChoice] || 'medium';
+    
+    console.log('\n⚠️  CONSENT NOTICE:');
+    console.log('  By submitting this request, you consent to sharing your');
+    console.log('  medical information with verified donors for transparency.');
+    
+    const consentInput = await prompt('\nDo you give consent? (yes/no): ');
+    const consent_given = consentInput.toLowerCase() === 'yes';
+    
+    if (!consent_given) {
+        console.log('\n❌ Consent is required to submit a sponsorship request.');
+        return;
+    }
+    
+    const result = await apiRequest('POST', '/cases', {
+        patient_id: currentUser.id,
+        title,
+        treatment_type,
+        description,
+        goal_amount,
+        urgency_level,
+        consent_given
+    });
+    
+    if (result.success) {
+        console.log('\n✅ Case created successfully!');
+        console.log(`   Case ID: ${result.data.id}`);
+        console.log(`   Status: ${result.data.status}`);
+        console.log('\n🎉 Your case is now ACTIVE and accepting donations!');
+        console.log('   Donors can now view your case and contribute.');
+    } else {
+        console.log(`\n❌ Error: ${result.error}`);
+    }
+}
+
+async function viewMySponsorshipCases() {
+    console.log('\n📊 My Sponsorship Cases:\n');
+    
+    const result = await apiRequest('GET', `/cases/patient/${currentUser.id}`);
+    
+    if (result.success && result.data.length > 0) {
+        result.data.forEach((c, i) => {
+            const statusIcon = c.status === 'active' ? '🟢' : 
+                              c.status === 'funded' ? '✅' : 
+                              c.status === 'pending_verification' ? '⏳' : 
+                              c.status === 'completed' ? '🎉' : '🟡';
+            
+            console.log(`  ${i + 1}. ${statusIcon} ${c.title}`);
+            console.log(`     Type: ${c.treatment_type.replace('_', ' ')}`);
+            console.log(`     Goal: $${c.goal_amount} | Raised: $${c.raised_amount} (${c.funding_percentage}%)`);
+            console.log(`     Status: ${c.status} | Urgency: ${c.urgency_level}`);
+            
+            // Progress bar
+            const progress = Math.min(100, c.funding_percentage || 0);
+            const filled = Math.round(progress / 5);
+            const empty = 20 - filled;
+            const bar = '█'.repeat(filled) + '░'.repeat(empty);
+            console.log(`     Progress: [${bar}] ${progress}%`);
+            console.log('');
+        });
+        
+        // Option to add update
+        const addUpdate = await prompt('Add a thank you/update to a case? (y/n): ');
+        if (addUpdate.toLowerCase() === 'y') {
+            await addCaseUpdate(result.data);
+        }
+    } else {
+        console.log('  No sponsorship cases found.');
+        console.log('  Use "Request Medical Sponsorship" to create one.');
+    }
+}
+
+async function addCaseUpdate(cases) {
+    console.log('\nSelect a case to update:');
+    cases.forEach((c, i) => {
+        console.log(`  ${i + 1}. ${c.title}`);
+    });
+    
+    const caseChoice = await prompt('\nEnter case number (0 to cancel): ');
+    const caseIndex = parseInt(caseChoice) - 1;
+    
+    if (caseChoice === '0' || isNaN(caseIndex) || caseIndex < 0 || caseIndex >= cases.length) {
+        console.log('\n  Cancelled.');
+        return;
+    }
+    
+    const selectedCase = cases[caseIndex];
+    
+    console.log('\nUpdate Type:');
+    console.log('  1. Thank You Message');
+    console.log('  2. Recovery Update');
+    
+    const typeChoice = await prompt('Enter choice (1-2): ');
+    const update_type = typeChoice === '1' ? 'thank_you' : 'recovery';
+    
+    const title = await prompt('Update Title: ');
+    const content = await prompt('Your message:\n> ');
+    
+    const result = await apiRequest('POST', `/cases/${selectedCase.id}/updates`, {
+        update_type,
+        title,
+        content,
+        created_by_type: 'patient',
+        created_by_id: currentUser.id
+    });
+    
+    if (result.success) {
+        console.log('\n✅ Update posted successfully!');
+        console.log('   Donors will be able to see your message.');
+    } else {
+        console.log(`\n❌ Error: ${result.error}`);
+    }
+}
+
 async function patientMenuLoop() {
     while (currentUser && currentUserType === 'patient') {
         printPatientMenu();
@@ -941,9 +1131,15 @@ async function patientMenuLoop() {
                 await patientViewMessages();
                 break;
             case '8':
-                await viewMyProfile();
+                await requestMedicalSponsorship();
                 break;
             case '9':
+                await viewMySponsorshipCases();
+                break;
+            case '10':
+                await viewMyProfile();
+                break;
+            case '11':
                 currentUser = null;
                 currentUserType = null;
                 console.log('\n✅ Logged out successfully.\n');
@@ -1011,6 +1207,395 @@ async function doctorMenuLoop() {
     }
 }
 
+// ============================================
+// DONOR FUNCTIONS
+// ============================================
+
+async function registerDonor() {
+    console.log('\n┌──────────────────────────────────────────────────────────────┐');
+    console.log('│                  DONOR REGISTRATION                          │');
+    console.log('└──────────────────────────────────────────────────────────────┘\n');
+    
+    const username = await prompt('Choose a Username: ');
+    const password = await prompt('Choose a Password: ');
+    const confirmPassword = await prompt('Confirm Password: ');
+    
+    if (password !== confirmPassword) {
+        console.log('\n❌ Passwords do not match. Please try again.');
+        return null;
+    }
+    
+    const name = await prompt('Full Name: ');
+    const email = await prompt('Email: ');
+    const phone = await prompt('Phone (optional): ');
+    const country = await prompt('Country: ');
+    const organization = await prompt('Organization (optional): ');
+    const isAnonymousInput = await prompt('Stay anonymous in donations? (y/n): ');
+    const is_anonymous = isAnonymousInput.toLowerCase() === 'y';
+    
+    const result = await apiRequest('POST', '/donors', {
+        username, password, name, email, 
+        phone: phone || null, 
+        country, 
+        organization: organization || null,
+        is_anonymous
+    });
+    
+    if (result.success) {
+        console.log('\n✅ Registration successful!');
+        console.log(`   Welcome, ${name}! You can now login and start donating.`);
+        return result.data;
+    } else {
+        console.log(`\n❌ Registration failed: ${result.error}`);
+        return null;
+    }
+}
+
+async function loginDonor() {
+    console.log('\n┌──────────────────────────────────────────────────────────────┐');
+    console.log('│                     DONOR LOGIN                              │');
+    console.log('└──────────────────────────────────────────────────────────────┘\n');
+    
+    const username = await prompt('Username: ');
+    const password = await prompt('Password: ');
+    
+    const result = await apiRequest('POST', '/donors/login', { username, password });
+    
+    if (result.success) {
+        currentUser = result.data;
+        currentUserType = 'donor';
+        console.log(`\n✅ Welcome back, ${currentUser.name}!`);
+        console.log(`   Total donated: $${currentUser.total_donated}`);
+        return true;
+    } else {
+        console.log('\n❌ Invalid username or password. Please try again.\n');
+        return false;
+    }
+}
+
+function printDonorMenu() {
+    console.log(`  Logged in as: ${currentUser.name} (Donor)\n`);
+    console.log('┌──────────────────────────────────────────────────────────────┐');
+    console.log('│                    DONOR MENU                                │');
+    console.log('├──────────────────────────────────────────────────────────────┤');
+    console.log('│  1. Browse Medical Cases                                     │');
+    console.log('│  2. Make a Donation                                          │');
+    console.log('│  3. View My Donations                                        │');
+    console.log('│  4. View Case Details & Transparency                         │');
+    console.log('│  5. View My Profile                                          │');
+    console.log('│  6. Logout                                                   │');
+    console.log('│  0. Exit                                                     │');
+    console.log('└──────────────────────────────────────────────────────────────┘');
+}
+
+async function browseMedicalCases() {
+    console.log('\n💊 Active Medical Cases:\n');
+    const result = await apiRequest('GET', '/cases');
+    
+    if (result.success && result.data.length > 0) {
+        result.data.forEach((c, i) => {
+            const urgencyIcon = c.urgency_level === 'critical' ? '🔴' : 
+                               c.urgency_level === 'high' ? '🟠' : 
+                               c.urgency_level === 'medium' ? '🟡' : '🟢';
+            console.log(`  ${i + 1}. ${urgencyIcon} ${c.title}`);
+            console.log(`     Patient: ${c.patient_name} | Type: ${c.treatment_type.replace('_', ' ')}`);
+            console.log(`     Goal: $${c.goal_amount} | Raised: $${c.raised_amount} (${c.funding_percentage}%)`);
+            console.log(`     Status: ${c.status} | Urgency: ${c.urgency_level}`);
+            console.log('');
+        });
+    } else {
+        console.log('  No active cases at the moment.');
+    }
+}
+
+async function viewUrgentCases() {
+    console.log('\n🚨 Urgent Medical Cases:\n');
+    const result = await apiRequest('GET', '/cases/urgent');
+    
+    if (result.success && result.data.length > 0) {
+        result.data.forEach((c, i) => {
+            const urgencyIcon = c.urgency_level === 'critical' ? '🔴 CRITICAL' : '🟠 HIGH';
+            console.log(`  ${i + 1}. ${urgencyIcon}`);
+            console.log(`     ${c.title}`);
+            console.log(`     Patient: ${c.patient_name}`);
+            console.log(`     Needed: $${c.goal_amount - c.raised_amount} more (${c.funding_percentage}% funded)`);
+            console.log('');
+        });
+    } else {
+        console.log('  No urgent cases at the moment. Thank you for checking!');
+    }
+}
+
+async function selectMedicalCase() {
+    const result = await apiRequest('GET', '/cases');
+    
+    if (!result.success || result.data.length === 0) {
+        console.log('\n  No active cases available.');
+        return null;
+    }
+    
+    console.log('\n💊 Select a Case to Donate:\n');
+    result.data.forEach((c, i) => {
+        const urgencyIcon = c.urgency_level === 'critical' ? '🔴' : 
+                           c.urgency_level === 'high' ? '🟠' : 
+                           c.urgency_level === 'medium' ? '🟡' : '🟢';
+        console.log(`  ${i + 1}. ${urgencyIcon} ${c.title} - ${c.patient_name}`);
+        console.log(`     Needs: $${c.goal_amount - c.raised_amount} more`);
+        console.log('');
+    });
+    
+    const choice = await prompt('Select case number (0 to cancel): ');
+    const index = parseInt(choice) - 1;
+    
+    if (choice === '0' || isNaN(index) || index < 0 || index >= result.data.length) {
+        return null;
+    }
+    
+    return result.data[index];
+}
+
+async function makeDonation() {
+    console.log('\n💝 Make a Donation\n');
+    
+    const medicalCase = await selectMedicalCase();
+    if (!medicalCase) {
+        console.log('\n  Cancelled.');
+        return;
+    }
+    
+    console.log(`\n  Selected: ${medicalCase.title}`);
+    console.log(`  Patient: ${medicalCase.patient_name}`);
+    console.log(`  Still needed: $${medicalCase.goal_amount - medicalCase.raised_amount}\n`);
+    
+    const amountStr = await prompt('Enter donation amount ($): ');
+    const amount = parseFloat(amountStr);
+    
+    if (isNaN(amount) || amount <= 0) {
+        console.log('\n❌ Invalid amount.');
+        return;
+    }
+    
+    console.log('\nPayment Method:');
+    console.log('  1. Credit Card');
+    console.log('  2. Bank Transfer');
+    console.log('  3. PayPal');
+    const paymentChoice = await prompt('Select (1-3): ');
+    const paymentMethods = { '1': 'credit_card', '2': 'bank_transfer', '3': 'paypal' };
+    const payment_method = paymentMethods[paymentChoice] || 'credit_card';
+    
+    const message = await prompt('Add a message (optional): ');
+    const anonInput = await prompt('Donate anonymously? (y/n): ');
+    const is_anonymous = anonInput.toLowerCase() === 'y';
+    
+    const result = await apiRequest('POST', '/donations', {
+        donor_id: currentUser.id,
+        case_id: medicalCase.id,
+        amount,
+        payment_method,
+        is_anonymous,
+        message: message || null
+    });
+    
+    if (result.success) {
+        console.log('\n✅ Thank you for your generous donation!');
+        console.log(`   Amount: $${amount}`);
+        console.log(`   Transaction ID: ${result.data.transaction_id}`);
+        currentUser.total_donated = parseFloat(currentUser.total_donated) + amount;
+    } else {
+        console.log(`\n❌ Donation failed: ${result.error}`);
+    }
+}
+
+async function viewMyDonations() {
+    console.log('\n📜 My Donation History:\n');
+    const result = await apiRequest('GET', `/donors/${currentUser.id}/donations`);
+    
+    if (result.success && result.data.length > 0) {
+        let total = 0;
+        result.data.forEach((d, i) => {
+            console.log(`  ${i + 1}. $${d.amount} to "${d.case_title}"`);
+            console.log(`     Patient: ${d.patient_name} | Type: ${d.treatment_type}`);
+            console.log(`     Date: ${new Date(d.created_at).toLocaleDateString()}`);
+            if (d.message) console.log(`     Message: "${d.message}"`);
+            console.log('');
+            total += parseFloat(d.amount);
+        });
+        console.log(`  ─────────────────────────────────`);
+        console.log(`  Total Donated: $${total.toFixed(2)}`);
+    } else {
+        console.log('  No donations yet. Start making a difference today!');
+    }
+}
+
+async function viewCaseTransparency() {
+    const medicalCase = await selectMedicalCase();
+    if (!medicalCase) {
+        console.log('\n  Cancelled.');
+        return;
+    }
+    
+    // Get full case details with patient info
+    const caseDetails = await apiRequest('GET', `/cases/${medicalCase.id}`);
+    const caseData = caseDetails.success ? caseDetails.data : medicalCase;
+    
+    console.log('\n┌──────────────────────────────────────────────────────────────┐');
+    console.log('│              PATIENT PROFILE & CASE DETAILS                  │');
+    console.log('└──────────────────────────────────────────────────────────────┘\n');
+    
+    // Patient Profile
+    console.log('  ═══ PATIENT PROFILE ═══');
+    console.log(`  � Name: ${caseData.patient_name}`);
+    if (caseData.medical_history) {
+        console.log(`  � Medical History: ${caseData.medical_history}`);
+    }
+    console.log('');
+    
+    // Case details
+    console.log('  ═══ CASE DETAILS ═══');
+    console.log(`  📋 Case: ${caseData.title}`);
+    console.log(`  🏥 Treatment Type: ${caseData.treatment_type.replace('_', ' ')}`);
+    console.log(`  � Description: ${caseData.description}`);
+    console.log(`  ⚠️  Urgency: ${caseData.urgency_level}`);
+    console.log('');
+    
+    // Funding Progress
+    console.log('  ═══ FUNDING PROGRESS ═══');
+    console.log(`  💰 Goal: $${caseData.goal_amount}`);
+    console.log(`  💵 Raised: $${caseData.raised_amount}`);
+    console.log(`  📊 Progress: ${caseData.funding_percentage}%`);
+    const progress = Math.min(100, caseData.funding_percentage || 0);
+    const filled = Math.round(progress / 5);
+    const empty = 20 - filled;
+    const bar = '█'.repeat(filled) + '░'.repeat(empty);
+    console.log(`  [${bar}]`);
+    
+    // Get invoices
+    console.log('\n  ─── Expenses & Invoices ───');
+    const invoices = await apiRequest('GET', `/cases/${medicalCase.id}/invoices`);
+    if (invoices.success && invoices.data.length > 0) {
+        let totalSpent = 0;
+        invoices.data.forEach(inv => {
+            console.log(`  • ${inv.title}: $${inv.amount} (${inv.category})`);
+            console.log(`    Vendor: ${inv.vendor_name} | Status: ${inv.status}`);
+            totalSpent += parseFloat(inv.amount);
+        });
+        console.log(`  Total Spent: $${totalSpent.toFixed(2)}`);
+    } else {
+        console.log('  No invoices recorded yet.');
+    }
+    
+    // Get updates
+    console.log('\n  ─── Recovery Updates ───');
+    const updates = await apiRequest('GET', `/cases/${medicalCase.id}/updates`);
+    if (updates.success && updates.data.length > 0) {
+        updates.data.forEach(upd => {
+            const icon = upd.update_type === 'thank_you' ? '💝' : 
+                        upd.update_type === 'recovery' ? '💪' : 
+                        upd.update_type === 'medical' ? '🏥' : '💰';
+            console.log(`  ${icon} ${upd.title}`);
+            console.log(`     ${upd.content}`);
+            console.log(`     [${new Date(upd.created_at).toLocaleDateString()}]`);
+            console.log('');
+        });
+    } else {
+        console.log('  No updates yet.');
+    }
+    
+    // Get donations
+    console.log('\n  ─── Recent Donations ───');
+    const donations = await apiRequest('GET', `/cases/${medicalCase.id}/donations`);
+    if (donations.success && donations.data.length > 0) {
+        donations.data.slice(0, 5).forEach(don => {
+            console.log(`  • $${don.amount} from ${don.donor_name}${don.donor_country ? ` (${don.donor_country})` : ''}`);
+            if (don.message) console.log(`    "${don.message}"`);
+        });
+    } else {
+        console.log('  No donations yet. Be the first!');
+    }
+}
+
+async function viewTopDonors() {
+    console.log('\n🏆 Top Donors Leaderboard:\n');
+    const result = await apiRequest('GET', '/donors/top?limit=10');
+    
+    if (result.success && result.data.length > 0) {
+        result.data.forEach((d, i) => {
+            const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i + 1}.`;
+            console.log(`  ${medal} ${d.name}${d.organization ? ` (${d.organization})` : ''}`);
+            console.log(`     Total: $${d.total_donated}${d.country ? ` | ${d.country}` : ''}`);
+            console.log('');
+        });
+    } else {
+        console.log('  No donors yet.');
+    }
+}
+
+async function viewDonationStats() {
+    console.log('\n📊 Donation Statistics:\n');
+    const result = await apiRequest('GET', '/donations/stats');
+    
+    if (result.success) {
+        const stats = result.data;
+        console.log(`  Total Donations: ${stats.total_donations}`);
+        console.log(`  Total Amount Raised: $${stats.total_amount || 0}`);
+        console.log(`  Active Cases: ${stats.active_cases}`);
+        console.log(`  Funded Cases: ${stats.funded_cases}`);
+        
+        if (stats.by_treatment_type && stats.by_treatment_type.length > 0) {
+            console.log('\n  By Treatment Type:');
+            stats.by_treatment_type.forEach(t => {
+                console.log(`    • ${t.treatment_type.replace('_', ' ')}: $${t.total} (${t.count} donations)`);
+            });
+        }
+    } else {
+        console.log('  Could not load statistics.');
+    }
+}
+
+async function donorMenuLoop() {
+    while (currentUser && currentUserType === 'donor') {
+        printDonorMenu();
+        const choice = await prompt('\nEnter your choice: ');
+        
+        switch (choice) {
+            case '1':
+                await browseMedicalCases();
+                break;
+            case '2':
+                await makeDonation();
+                break;
+            case '3':
+                await viewMyDonations();
+                break;
+            case '4':
+                await viewCaseTransparency();
+                break;
+            case '5':
+                await viewMyProfile();
+                break;
+            case '6':
+                currentUser = null;
+                currentUserType = null;
+                console.log('\n✅ Logged out successfully.\n');
+                return;
+            case '0':
+                console.log('\n👋 Thank you for using HealthPal. Stay healthy!\n');
+                rl.close();
+                process.exit(0);
+            default:
+                console.log('\n⚠️  Invalid choice. Please try again.');
+        }
+        
+        await prompt('\nPress Enter to continue...');
+        clearScreen();
+        printHeader();
+    }
+}
+
+// ============================================
+// MAIN FUNCTION
+// ============================================
+
 async function main() {
     clearScreen();
     printHeader();
@@ -1055,6 +1640,20 @@ async function main() {
                     printHeader();
                     await doctorMenuLoop();
                 }
+                break;
+            case '5':
+                await registerDonor();
+                break;
+            case '6':
+                if (await loginDonor()) {
+                    await prompt('\nPress Enter to continue...');
+                    clearScreen();
+                    printHeader();
+                    await donorMenuLoop();
+                }
+                break;
+            case '7':
+                await browseMedicalCases();
                 break;
             case '0':
                 console.log('\n👋 Thank you for using HealthPal. Stay healthy!\n');

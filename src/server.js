@@ -1,10 +1,17 @@
 const express = require('express');
 require('dotenv').config();
 
+// Feature 1: Remote Medical Consultations
 const patientsRouter = require('./routes/patients');
 const doctorsRouter = require('./routes/doctors');
 const consultationsRouter = require('./routes/consultations');
 const messagesRouter = require('./routes/messages');
+
+// Feature 2: Medical Sponsorship System
+const donorsRouter = require('./routes/donors');
+const medicalCasesRouter = require('./routes/medical-cases');
+const donationsRouter = require('./routes/donations');
+const invoicesRouter = require('./routes/invoices');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -12,11 +19,17 @@ const PORT = process.env.PORT || 3000;
 // Middleware
 app.use(express.json());
 
-// Routes
+// Feature 1 Routes: Remote Medical Consultations
 app.use('/api/patients', patientsRouter);
 app.use('/api/doctors', doctorsRouter);
 app.use('/api/consultations', consultationsRouter);
 app.use('/api/messages', messagesRouter);
+
+// Feature 2 Routes: Medical Sponsorship System
+app.use('/api/donors', donorsRouter);
+app.use('/api/cases', medicalCasesRouter);
+app.use('/api/donations', donationsRouter);
+app.use('/api/invoices', invoicesRouter);
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -27,13 +40,19 @@ app.get('/api/health', (req, res) => {
 app.get('/api', (req, res) => {
     res.json({
         name: 'HealthPal API',
-        version: '1.0.0',
-        description: 'Remote Medical Consultations API',
+        version: '2.0.0',
+        description: 'Remote Medical Consultations & Medical Sponsorship Platform',
+        features: {
+            feature1: 'Remote Medical Consultations',
+            feature2: 'Medical Sponsorship System'
+        },
         endpoints: {
+            // Feature 1: Remote Medical Consultations
             patients: {
                 'GET /api/patients': 'List all patients',
                 'GET /api/patients/:id': 'Get patient by ID',
-                'POST /api/patients': 'Create new patient',
+                'POST /api/patients': 'Register new patient',
+                'POST /api/patients/login': 'Patient login',
                 'PUT /api/patients/:id': 'Update patient',
                 'DELETE /api/patients/:id': 'Delete patient'
             },
@@ -42,7 +61,8 @@ app.get('/api', (req, res) => {
                 'GET /api/doctors/available': 'List available doctors',
                 'GET /api/doctors/specialty/:specialty': 'List doctors by specialty',
                 'GET /api/doctors/:id': 'Get doctor by ID',
-                'POST /api/doctors': 'Create new doctor',
+                'POST /api/doctors': 'Register new doctor',
+                'POST /api/doctors/login': 'Doctor login',
                 'PATCH /api/doctors/:id/availability': 'Update doctor availability',
                 'PUT /api/doctors/:id': 'Update doctor',
                 'DELETE /api/doctors/:id': 'Delete doctor'
@@ -59,17 +79,58 @@ app.get('/api', (req, res) => {
             },
             messages: {
                 'GET /api/messages/consultation/:consultationId': 'Get consultation messages',
-                'POST /api/messages': 'Send message',
-                'PATCH /api/messages/read/:consultationId': 'Mark messages as read',
-                'GET /api/messages/unread/:consultationId/:readerType': 'Get unread count'
+                'POST /api/messages': 'Send message'
+            },
+            // Feature 2: Medical Sponsorship System
+            donors: {
+                'GET /api/donors': 'List all donors',
+                'GET /api/donors/top': 'Get top donors leaderboard',
+                'GET /api/donors/:id': 'Get donor by ID',
+                'GET /api/donors/:id/donations': 'Get donor donation history',
+                'POST /api/donors': 'Register new donor',
+                'POST /api/donors/login': 'Donor login',
+                'PUT /api/donors/:id': 'Update donor',
+                'DELETE /api/donors/:id': 'Delete donor'
+            },
+            medical_cases: {
+                'GET /api/cases': 'List all active medical cases',
+                'GET /api/cases/type/:type': 'Get cases by treatment type',
+                'GET /api/cases/urgent': 'Get urgent cases',
+                'GET /api/cases/:id': 'Get case details',
+                'GET /api/cases/:id/donations': 'Get case donations',
+                'GET /api/cases/:id/updates': 'Get case updates',
+                'GET /api/cases/:id/invoices': 'Get case invoices',
+                'GET /api/cases/patient/:patientId': 'Get patient cases',
+                'POST /api/cases': 'Create new medical case',
+                'POST /api/cases/:id/updates': 'Add case update',
+                'PATCH /api/cases/:id/verify': 'Verify case (doctor)',
+                'PATCH /api/cases/:id/status': 'Update case status'
+            },
+            donations: {
+                'GET /api/donations': 'List all donations',
+                'GET /api/donations/recent': 'Get recent donations',
+                'GET /api/donations/stats': 'Get donation statistics',
+                'GET /api/donations/:id': 'Get donation by ID',
+                'POST /api/donations': 'Make a donation'
+            },
+            invoices: {
+                'GET /api/invoices': 'List all invoices',
+                'GET /api/invoices/category/:category': 'Get invoices by category',
+                'GET /api/invoices/stats': 'Get invoice statistics',
+                'GET /api/invoices/:id': 'Get invoice by ID',
+                'POST /api/invoices': 'Create new invoice',
+                'PATCH /api/invoices/:id/status': 'Update invoice status',
+                'DELETE /api/invoices/:id': 'Delete invoice'
             }
         },
-        specialties: [
-            'general_practice', 'pediatrics', 'mental_health', 
-            'internal_medicine', 'surgery', 'dermatology', 
-            'cardiology', 'neurology'
-        ],
-        consultation_types: ['video', 'audio', 'message']
+        enums: {
+            treatment_types: ['surgery', 'cancer_treatment', 'dialysis', 'physical_rehabilitation', 'medication', 'other'],
+            case_status: ['pending_verification', 'verified', 'active', 'funded', 'in_treatment', 'completed', 'cancelled'],
+            urgency_levels: ['low', 'medium', 'high', 'critical'],
+            invoice_categories: ['hospital', 'medication', 'equipment', 'therapy', 'transportation', 'other'],
+            specialties: ['general_practice', 'pediatrics', 'mental_health', 'internal_medicine', 'surgery', 'dermatology', 'cardiology', 'neurology'],
+            consultation_types: ['video', 'audio', 'message']
+        }
     });
 });
 
