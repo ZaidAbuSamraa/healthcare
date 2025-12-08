@@ -200,6 +200,122 @@ async function setupDatabase() {
     `);
     console.log('Case updates table created');
 
+    // Create volunteers table (NGOs and volunteers)
+    await connection.query(`
+        CREATE TABLE IF NOT EXISTS volunteers (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            username VARCHAR(50) UNIQUE NOT NULL,
+            password VARCHAR(255) NOT NULL,
+            name VARCHAR(100) NOT NULL,
+            email VARCHAR(100) UNIQUE NOT NULL,
+            phone VARCHAR(20),
+            organization_name VARCHAR(100),
+            organization_type ENUM('ngo', 'pharmacy', 'hospital', 'individual', 'charity') DEFAULT 'individual',
+            coverage_areas TEXT,
+            is_verified BOOLEAN DEFAULT FALSE,
+            availability_status ENUM('available', 'busy', 'offline') DEFAULT 'available',
+            total_deliveries INT DEFAULT 0,
+            rating DECIMAL(3, 2) DEFAULT 0.00,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    `);
+    console.log('Volunteers table created');
+
+    // Create medication_requests table
+    await connection.query(`
+        CREATE TABLE IF NOT EXISTS medication_requests (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            patient_id INT NOT NULL,
+            medication_name VARCHAR(255) NOT NULL,
+            medication_type ENUM('prescription', 'over_the_counter', 'medical_equipment', 'supplies') NOT NULL,
+            quantity VARCHAR(100),
+            description TEXT,
+            prescription_image VARCHAR(255),
+            urgency_level ENUM('low', 'medium', 'high', 'critical') DEFAULT 'medium',
+            status ENUM('pending', 'accepted', 'in_progress', 'delivered', 'cancelled') DEFAULT 'pending',
+            delivery_address TEXT NOT NULL,
+            delivery_notes TEXT,
+            accepted_by INT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE CASCADE,
+            FOREIGN KEY (accepted_by) REFERENCES volunteers(id) ON DELETE SET NULL
+        )
+    `);
+    console.log('Medication requests table created');
+
+    // Create deliveries table
+    await connection.query(`
+        CREATE TABLE IF NOT EXISTS deliveries (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            request_id INT NOT NULL,
+            volunteer_id INT NOT NULL,
+            status ENUM('picked_up', 'in_transit', 'delivered', 'failed') DEFAULT 'picked_up',
+            pickup_location VARCHAR(255),
+            delivery_location VARCHAR(255),
+            estimated_delivery DATETIME,
+            actual_delivery DATETIME,
+            notes TEXT,
+            patient_confirmed BOOLEAN DEFAULT FALSE,
+            rating INT,
+            feedback TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            FOREIGN KEY (request_id) REFERENCES medication_requests(id) ON DELETE CASCADE,
+            FOREIGN KEY (volunteer_id) REFERENCES volunteers(id) ON DELETE CASCADE
+        )
+    `);
+    console.log('Deliveries table created');
+
+    // Create equipment_inventory table (Crowdsourced Inventory)
+    await connection.query(`
+        CREATE TABLE IF NOT EXISTS equipment_inventory (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            listed_by_type ENUM('volunteer', 'donor', 'hospital', 'pharmacy') NOT NULL,
+            listed_by_id INT NOT NULL,
+            item_name VARCHAR(255) NOT NULL,
+            item_type ENUM('oxygen_tank', 'wheelchair', 'dialysis_machine', 'nebulizer', 'hospital_bed', 'crutches', 'blood_pressure_monitor', 'glucose_meter', 'medication', 'surgical_supplies', 'ppe', 'other') NOT NULL,
+            category ENUM('equipment', 'medication', 'supplies') NOT NULL,
+            description TEXT,
+            quantity INT NOT NULL DEFAULT 1,
+            available_quantity INT NOT NULL DEFAULT 1,
+            condition_status ENUM('new', 'like_new', 'good', 'fair', 'for_parts') DEFAULT 'good',
+            expiry_date DATE,
+            location VARCHAR(255) NOT NULL,
+            is_available BOOLEAN DEFAULT TRUE,
+            is_free BOOLEAN DEFAULT TRUE,
+            price DECIMAL(10, 2) DEFAULT 0.00,
+            contact_phone VARCHAR(20),
+            contact_email VARCHAR(100),
+            notes TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        )
+    `);
+    console.log('Equipment inventory table created');
+
+    // Create equipment_requests table
+    await connection.query(`
+        CREATE TABLE IF NOT EXISTS equipment_requests (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            patient_id INT NOT NULL,
+            equipment_id INT,
+            item_name VARCHAR(255) NOT NULL,
+            item_type VARCHAR(100),
+            urgency_level ENUM('low', 'medium', 'high', 'critical') DEFAULT 'medium',
+            description TEXT,
+            status ENUM('pending', 'matched', 'fulfilled', 'cancelled') DEFAULT 'pending',
+            fulfilled_by_type ENUM('volunteer', 'donor') NULL,
+            fulfilled_by_id INT NULL,
+            delivery_address TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE CASCADE,
+            FOREIGN KEY (equipment_id) REFERENCES equipment_inventory(id) ON DELETE SET NULL
+        )
+    `);
+    console.log('Equipment requests table created');
+
     // Insert sample doctors (password: password123)
     await connection.query(`
         INSERT IGNORE INTO doctors (username, password, name, email, phone, specialty, languages, is_international, availability_status, bio, years_of_experience) VALUES
@@ -274,6 +390,51 @@ async function setupDatabase() {
         (3, 'medical', 'Equipment Received', 'Omar received his nebulizer and started using it at home. His breathing has improved significantly.', 'doctor', 2)
     `);
     console.log('Sample case updates inserted');
+
+    // Insert sample volunteers (password: password123)
+    await connection.query(`
+        INSERT IGNORE INTO volunteers (username, password, name, email, phone, organization_name, organization_type, coverage_areas, is_verified, availability_status, total_deliveries, rating) VALUES
+        ('gaza_pharmacy', 'password123', 'Gaza Central Pharmacy', 'gaza.pharmacy@email.com', '+970-599-444555', 'Gaza Central Pharmacy', 'pharmacy', 'Gaza City, North Gaza', TRUE, 'available', 45, 4.80),
+        ('red_crescent', 'password123', 'Palestine Red Crescent', 'prc@redcrescent.ps', '+970-598-888999', 'Palestine Red Crescent Society', 'ngo', 'All Gaza Strip', TRUE, 'available', 120, 4.95),
+        ('volunteer_ahmad', 'password123', 'Ahmad Volunteer', 'ahmad.vol@email.com', '+970-597-666777', NULL, 'individual', 'Gaza City, Rimal', TRUE, 'available', 23, 4.60),
+        ('medical_aid', 'password123', 'Medical Aid Palestine', 'contact@medicalaid.ps', '+970-599-111000', 'Medical Aid for Palestinians', 'charity', 'All Gaza Strip, West Bank', TRUE, 'available', 89, 4.90)
+    `);
+    console.log('Sample volunteers inserted');
+
+    // Insert sample medication requests
+    await connection.query(`
+        INSERT IGNORE INTO medication_requests (patient_id, medication_name, medication_type, quantity, description, urgency_level, status, delivery_address, delivery_notes, accepted_by) VALUES
+        (1, 'Insulin Lantus', 'prescription', '3 boxes', 'Insulin for diabetes management, needed urgently', 'high', 'delivered', 'Gaza City, Al-Rimal, Street 5', 'Call before arrival', 1),
+        (2, 'Paracetamol 500mg', 'over_the_counter', '2 boxes', 'For pain management', 'low', 'pending', 'Gaza City, Al-Zahra, Building 12', 'Leave at reception', NULL),
+        (3, 'Nebulizer Masks (Pediatric)', 'medical_equipment', '5 pieces', 'Replacement masks for home nebulizer', 'medium', 'in_progress', 'North Gaza, Beit Lahia', 'Urgent for child', 3)
+    `);
+    console.log('Sample medication requests inserted');
+
+    // Insert sample deliveries
+    await connection.query(`
+        INSERT IGNORE INTO deliveries (request_id, volunteer_id, status, pickup_location, delivery_location, estimated_delivery, actual_delivery, patient_confirmed, rating, feedback) VALUES
+        (1, 1, 'delivered', 'Gaza Central Pharmacy', 'Gaza City, Al-Rimal, Street 5', '2025-01-20 14:00:00', '2025-01-20 13:45:00', TRUE, 5, 'Very fast delivery, thank you!')
+    `);
+    console.log('Sample deliveries inserted');
+
+    // Insert sample equipment inventory (Crowdsourced Inventory)
+    await connection.query(`
+        INSERT IGNORE INTO equipment_inventory (listed_by_type, listed_by_id, item_name, item_type, category, description, quantity, available_quantity, condition_status, location, is_available, is_free, contact_phone) VALUES
+        ('volunteer', 1, 'Portable Oxygen Concentrator', 'oxygen_tank', 'equipment', '5L portable oxygen concentrator, fully functional', 2, 2, 'good', 'Gaza City, Al-Rimal', TRUE, TRUE, '+970-599-444555'),
+        ('volunteer', 2, 'Manual Wheelchair', 'wheelchair', 'equipment', 'Standard manual wheelchair, foldable', 5, 3, 'good', 'Gaza Central Hospital', TRUE, TRUE, '+970-598-888999'),
+        ('volunteer', 2, 'Crutches (Adjustable)', 'crutches', 'equipment', 'Aluminum adjustable crutches, pairs available', 10, 8, 'like_new', 'Gaza Central Hospital', TRUE, TRUE, '+970-598-888999'),
+        ('volunteer', 1, 'Blood Pressure Monitor', 'blood_pressure_monitor', 'equipment', 'Digital automatic blood pressure monitor', 3, 3, 'new', 'Gaza City Pharmacy', TRUE, TRUE, '+970-599-444555'),
+        ('volunteer', 4, 'Nebulizer Machine', 'nebulizer', 'equipment', 'Compressor nebulizer for respiratory treatments', 4, 2, 'good', 'Medical Aid Office, Gaza', TRUE, TRUE, '+970-599-111000'),
+        ('volunteer', 1, 'Insulin (Lantus)', 'medication', 'medication', 'Lantus insulin pens, expiry 2025-06', 20, 15, 'new', 'Gaza Central Pharmacy', TRUE, TRUE, '+970-599-444555'),
+        ('volunteer', 4, 'Surgical Masks (Box)', 'ppe', 'supplies', 'Box of 50 surgical masks', 100, 80, 'new', 'Medical Aid Warehouse', TRUE, TRUE, '+970-599-111000'),
+        ('volunteer', 2, 'Hospital Bed (Manual)', 'hospital_bed', 'equipment', 'Manual hospital bed with side rails', 2, 1, 'fair', 'Red Crescent Storage', TRUE, TRUE, '+970-598-888999'),
+        ('volunteer', 3, 'Glucose Meter Kit', 'glucose_meter', 'equipment', 'Complete glucose monitoring kit with strips', 5, 5, 'new', 'Gaza City, Rimal District', TRUE, TRUE, '+970-597-666777'),
+        ('donor', 1, 'Oxygen Concentrator (Portable)', 'oxygen_tank', 'equipment', 'Donated portable oxygen concentrator, 3L capacity', 1, 1, 'like_new', 'Gaza City - Available for pickup', TRUE, TRUE, '+1-555-0101'),
+        ('donor', 2, 'Diabetic Testing Supplies', 'medication', 'medication', 'Glucose test strips and lancets, 100 count boxes', 10, 10, 'new', 'Can deliver to Gaza', TRUE, TRUE, '+1-555-0102'),
+        ('donor', 3, 'First Aid Kits', 'surgical_supplies', 'supplies', 'Complete first aid kits for home use', 25, 25, 'new', 'Available at donation center', TRUE, TRUE, 'anonymous'),
+        ('donor', 4, 'Walking Canes', 'crutches', 'equipment', 'Adjustable aluminum walking canes', 8, 8, 'new', 'Charity Foundation Office', TRUE, TRUE, '+972-50-1234567')
+    `);
+    console.log('Sample equipment inventory inserted');
 
     await connection.end();
     console.log('\n✓ Database setup completed successfully!');

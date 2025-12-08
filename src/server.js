@@ -13,6 +13,11 @@ const medicalCasesRouter = require('./routes/medical-cases');
 const donationsRouter = require('./routes/donations');
 const invoicesRouter = require('./routes/invoices');
 
+// Feature 3: Medication & Equipment Coordination
+const volunteersRouter = require('./routes/volunteers');
+const medicationRequestsRouter = require('./routes/medication-requests');
+const equipmentRouter = require('./routes/equipment');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -31,6 +36,11 @@ app.use('/api/cases', medicalCasesRouter);
 app.use('/api/donations', donationsRouter);
 app.use('/api/invoices', invoicesRouter);
 
+// Feature 3 Routes: Medication & Equipment Coordination
+app.use('/api/volunteers', volunteersRouter);
+app.use('/api/medications', medicationRequestsRouter);
+app.use('/api/equipment', equipmentRouter);
+
 // Health check
 app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', message: 'HealthPal API is running' });
@@ -41,10 +51,11 @@ app.get('/api', (req, res) => {
     res.json({
         name: 'HealthPal API',
         version: '2.0.0',
-        description: 'Remote Medical Consultations & Medical Sponsorship Platform',
+        description: 'Remote Medical Consultations, Medical Sponsorship & Medication Coordination Platform',
         features: {
             feature1: 'Remote Medical Consultations',
-            feature2: 'Medical Sponsorship System'
+            feature2: 'Medical Sponsorship System',
+            feature3: 'Medication & Equipment Coordination'
         },
         endpoints: {
             // Feature 1: Remote Medical Consultations
@@ -121,6 +132,49 @@ app.get('/api', (req, res) => {
                 'POST /api/invoices': 'Create new invoice',
                 'PATCH /api/invoices/:id/status': 'Update invoice status',
                 'DELETE /api/invoices/:id': 'Delete invoice'
+            },
+            // Feature 3: Medication & Equipment Coordination
+            volunteers: {
+                'GET /api/volunteers': 'List available volunteers/NGOs',
+                'GET /api/volunteers/:id': 'Get volunteer by ID',
+                'GET /api/volunteers/:id/deliveries': 'Get volunteer delivery history',
+                'GET /api/volunteers/type/:type': 'Get volunteers by type',
+                'POST /api/volunteers': 'Register new volunteer/NGO',
+                'POST /api/volunteers/login': 'Volunteer login',
+                'PATCH /api/volunteers/:id/availability': 'Update availability'
+            },
+            medication_requests: {
+                'GET /api/medications': 'List all medication requests',
+                'GET /api/medications/pending': 'List pending requests',
+                'GET /api/medications/urgent': 'List urgent requests',
+                'GET /api/medications/:id': 'Get request details',
+                'GET /api/medications/patient/:patientId': 'Get patient requests',
+                'GET /api/medications/volunteer/:volunteerId': 'Get volunteer accepted requests',
+                'POST /api/medications': 'Create medication request',
+                'PATCH /api/medications/:id/accept': 'Accept request (volunteer)',
+                'PATCH /api/medications/:id/status': 'Update request status',
+                'POST /api/medications/:id/deliver': 'Start delivery',
+                'GET /api/medications/:id/delivery': 'Get delivery status',
+                'PATCH /api/medications/delivery/:deliveryId': 'Update delivery status',
+                'PATCH /api/medications/delivery/:deliveryId/confirm': 'Confirm delivery & rate',
+                'DELETE /api/medications/:id': 'Cancel request'
+            },
+            equipment_inventory: {
+                'GET /api/equipment': 'List all available equipment',
+                'GET /api/equipment/type/:type': 'Get equipment by type',
+                'GET /api/equipment/category/:category': 'Get equipment by category',
+                'GET /api/equipment/search/:query': 'Search equipment',
+                'GET /api/equipment/:id': 'Get equipment details',
+                'GET /api/equipment/volunteer/:volunteerId': 'Get volunteer listings',
+                'GET /api/equipment/donor/:donorId': 'Get donor donated items',
+                'GET /api/equipment/stats/summary': 'Get inventory statistics',
+                'POST /api/equipment': 'List new equipment',
+                'PUT /api/equipment/:id': 'Update equipment listing',
+                'DELETE /api/equipment/:id': 'Remove equipment listing',
+                'POST /api/equipment/request': 'Request equipment (patient)',
+                'GET /api/equipment/requests/patient/:patientId': 'Get patient equipment requests',
+                'GET /api/equipment/requests/pending': 'Get pending requests (volunteer)',
+                'PATCH /api/equipment/requests/:id/fulfill': 'Fulfill equipment request'
             }
         },
         enums: {
@@ -129,7 +183,14 @@ app.get('/api', (req, res) => {
             urgency_levels: ['low', 'medium', 'high', 'critical'],
             invoice_categories: ['hospital', 'medication', 'equipment', 'therapy', 'transportation', 'other'],
             specialties: ['general_practice', 'pediatrics', 'mental_health', 'internal_medicine', 'surgery', 'dermatology', 'cardiology', 'neurology'],
-            consultation_types: ['video', 'audio', 'message']
+            consultation_types: ['video', 'audio', 'message'],
+            medication_types: ['prescription', 'over_the_counter', 'medical_equipment', 'supplies'],
+            organization_types: ['ngo', 'pharmacy', 'hospital', 'individual', 'charity'],
+            delivery_status: ['picked_up', 'in_transit', 'delivered', 'failed'],
+            request_status: ['pending', 'accepted', 'in_progress', 'delivered', 'cancelled'],
+            equipment_types: ['oxygen_tank', 'wheelchair', 'dialysis_machine', 'nebulizer', 'hospital_bed', 'crutches', 'blood_pressure_monitor', 'glucose_meter', 'medication', 'surgical_supplies', 'ppe', 'other'],
+            equipment_categories: ['equipment', 'medication', 'supplies'],
+            condition_status: ['new', 'like_new', 'good', 'fair', 'for_parts']
         }
     });
 });

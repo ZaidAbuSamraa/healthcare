@@ -75,7 +75,10 @@ function printWelcomeMenu() {
     console.log('│  === Medical Sponsorship ===                                 │');
     console.log('│  5. Register as Donor                                        │');
     console.log('│  6. Login as Donor                                           │');
-    console.log('│  7. Browse Medical Cases (Guest)                             │');
+    console.log('│                                                              │');
+    console.log('│  === Medication Delivery ===                                 │');
+    console.log('│  7. Register as Volunteer/NGO                                │');
+    console.log('│  8. Login as Volunteer/NGO                                   │');
     console.log('│                                                              │');
     console.log('│  0. Exit                                                     │');
     console.log('└──────────────────────────────────────────────────────────────┘');
@@ -248,8 +251,14 @@ function printPatientMenu() {
     console.log('│  8. Request Medical Sponsorship                              │');
     console.log('│  9. View My Sponsorship Cases                                │');
     console.log('│                                                              │');
-    console.log('│  10. View My Profile                                         │');
-    console.log('│  11. Logout                                                  │');
+    console.log('│  === Medication & Equipment ===                              │');
+    console.log('│  10. Request Medication Delivery                             │');
+    console.log('│  11. View My Medication Requests                             │');
+    console.log('│  12. Browse Available Equipment                              │');
+    console.log('│  13. Request Equipment                                       │');
+    console.log('│                                                              │');
+    console.log('│  14. View My Profile                                         │');
+    console.log('│  15. Logout                                                  │');
     console.log('│  0. Exit                                                     │');
     console.log('└──────────────────────────────────────────────────────────────┘');
 }
@@ -746,6 +755,17 @@ async function viewMyProfile() {
         console.log(`  Organization: ${currentUser.organization || 'Individual'}`);
         console.log(`  Total Donated: $${currentUser.total_donated}`);
         console.log(`  Anonymous: ${currentUser.is_anonymous ? 'Yes' : 'No'}`);
+    } else if (currentUserType === 'volunteer') {
+        console.log(`  Name: ${currentUser.name}`);
+        console.log(`  Email: ${currentUser.email}`);
+        console.log(`  Phone: ${currentUser.phone || 'Not provided'}`);
+        console.log(`  Type: ${currentUser.organization_type}`);
+        console.log(`  Organization: ${currentUser.organization_name || 'N/A'}`);
+        console.log(`  Coverage Areas: ${currentUser.coverage_areas || 'Not specified'}`);
+        console.log(`  Verified: ${currentUser.is_verified ? 'Yes ✓' : 'Pending'}`);
+        console.log(`  Status: ${currentUser.availability_status}`);
+        console.log(`  Total Deliveries: ${currentUser.total_deliveries}`);
+        console.log(`  Rating: ${currentUser.rating}/5 ⭐`);
     }
 }
 
@@ -1137,9 +1157,21 @@ async function patientMenuLoop() {
                 await viewMySponsorshipCases();
                 break;
             case '10':
-                await viewMyProfile();
+                await requestMedication();
                 break;
             case '11':
+                await viewMyMedicationRequests();
+                break;
+            case '12':
+                await browseAvailableEquipment();
+                break;
+            case '13':
+                await requestEquipment();
+                break;
+            case '14':
+                await viewMyProfile();
+                break;
+            case '15':
                 currentUser = null;
                 currentUserType = null;
                 console.log('\n✅ Logged out successfully.\n');
@@ -1278,12 +1310,18 @@ function printDonorMenu() {
     console.log('┌──────────────────────────────────────────────────────────────┐');
     console.log('│                    DONOR MENU                                │');
     console.log('├──────────────────────────────────────────────────────────────┤');
+    console.log('│  === Sponsorship ===                                         │');
     console.log('│  1. Browse Medical Cases                                     │');
     console.log('│  2. Make a Donation                                          │');
     console.log('│  3. View My Donations                                        │');
     console.log('│  4. View Case Details & Transparency                         │');
-    console.log('│  5. View My Profile                                          │');
-    console.log('│  6. Logout                                                   │');
+    console.log('│                                                              │');
+    console.log('│  === Donate Equipment/Medicine ===                           │');
+    console.log('│  5. Donate Equipment/Medicine (List to Inventory)            │');
+    console.log('│  6. View My Donated Items                                    │');
+    console.log('│                                                              │');
+    console.log('│  7. View My Profile                                          │');
+    console.log('│  8. Logout                                                   │');
     console.log('│  0. Exit                                                     │');
     console.log('└──────────────────────────────────────────────────────────────┘');
 }
@@ -1571,9 +1609,15 @@ async function donorMenuLoop() {
                 await viewCaseTransparency();
                 break;
             case '5':
-                await viewMyProfile();
+                await donorListEquipment();
                 break;
             case '6':
+                await viewDonorEquipmentListings();
+                break;
+            case '7':
+                await viewMyProfile();
+                break;
+            case '8':
                 currentUser = null;
                 currentUserType = null;
                 console.log('\n✅ Logged out successfully.\n');
@@ -1589,6 +1633,979 @@ async function donorMenuLoop() {
         await prompt('\nPress Enter to continue...');
         clearScreen();
         printHeader();
+    }
+}
+
+// ============================================
+// DONOR EQUIPMENT FUNCTIONS
+// ============================================
+
+async function donorListEquipment() {
+    console.log('\n┌──────────────────────────────────────────────────────────────┐');
+    console.log('│          DONATE EQUIPMENT/MEDICINE TO INVENTORY              │');
+    console.log('└──────────────────────────────────────────────────────────────┘\n');
+    
+    console.log('  Thank you for donating! Your contribution helps patients in need.\n');
+    
+    const item_name = await prompt('Item Name: ');
+    
+    console.log('\nItem Type:');
+    console.log('  1. Oxygen Tank           6. Crutches');
+    console.log('  2. Wheelchair            7. Blood Pressure Monitor');
+    console.log('  3. Dialysis Machine      8. Glucose Meter');
+    console.log('  4. Nebulizer             9. Medication');
+    console.log('  5. Hospital Bed          10. Surgical Supplies');
+    console.log('  11. PPE (Masks, Gloves)  12. Other');
+    
+    const typeChoice = await prompt('\nEnter type (1-12): ');
+    const types = {
+        '1': 'oxygen_tank', '2': 'wheelchair', '3': 'dialysis_machine',
+        '4': 'nebulizer', '5': 'hospital_bed', '6': 'crutches',
+        '7': 'blood_pressure_monitor', '8': 'glucose_meter', '9': 'medication',
+        '10': 'surgical_supplies', '11': 'ppe', '12': 'other'
+    };
+    const item_type = types[typeChoice] || 'other';
+    
+    console.log('\nCategory:');
+    console.log('  1. Equipment');
+    console.log('  2. Medication');
+    console.log('  3. Supplies');
+    const catChoice = await prompt('Enter category (1-3): ');
+    const categories = { '1': 'equipment', '2': 'medication', '3': 'supplies' };
+    const category = categories[catChoice] || 'equipment';
+    
+    const description = await prompt('Description: ');
+    const quantity = await prompt('Quantity donating: ');
+    
+    console.log('\nCondition:');
+    console.log('  1. New');
+    console.log('  2. Like New');
+    console.log('  3. Good');
+    console.log('  4. Fair');
+    const condChoice = await prompt('Enter condition (1-4): ');
+    const conditions = { '1': 'new', '2': 'like_new', '3': 'good', '4': 'fair' };
+    const condition_status = conditions[condChoice] || 'good';
+    
+    const location = await prompt('Pickup/Delivery Location: ');
+    const contact_phone = currentUser.phone || await prompt('Contact Phone: ');
+    
+    const result = await apiRequest('POST', '/equipment', {
+        listed_by_type: 'donor',
+        listed_by_id: currentUser.id,
+        item_name,
+        item_type,
+        category,
+        description,
+        quantity: parseInt(quantity) || 1,
+        condition_status,
+        location,
+        is_free: true,
+        price: 0,
+        contact_phone,
+        contact_email: currentUser.email
+    });
+    
+    if (result.success) {
+        console.log('\n✅ Equipment/Medicine donated successfully!');
+        console.log(`   Item ID: ${result.data.id}`);
+        console.log('\n   🙏 Thank you for your generous donation!');
+        console.log('   Patients in need can now request this item.');
+    } else {
+        console.log(`\n❌ Error: ${result.error}`);
+    }
+}
+
+async function viewDonorEquipmentListings() {
+    console.log('\n🎁 My Donated Equipment/Medicine:\n');
+    
+    const result = await apiRequest('GET', `/equipment/donor/${currentUser.id}`);
+    
+    if (result.success && result.data.length > 0) {
+        result.data.forEach((e, i) => {
+            const statusIcon = e.is_available && e.available_quantity > 0 ? '🟢 Available' : '🔴 Distributed';
+            console.log(`  ${i + 1}. ${e.item_name}`);
+            console.log(`     Type: ${e.item_type.replace(/_/g, ' ')} | Category: ${e.category}`);
+            console.log(`     Donated: ${e.quantity} | Remaining: ${e.available_quantity}`);
+            console.log(`     Status: ${statusIcon}`);
+            console.log(`     Location: ${e.location}`);
+            console.log('');
+        });
+        
+        const distributed = result.data.reduce((sum, e) => sum + (e.quantity - e.available_quantity), 0);
+        console.log(`  ─────────────────────────────────`);
+        console.log(`  Total Items Donated: ${result.data.reduce((sum, e) => sum + e.quantity, 0)}`);
+        console.log(`  Items Distributed to Patients: ${distributed}`);
+    } else {
+        console.log('  No donated items yet.');
+        console.log('  Use "Donate Equipment/Medicine" to help patients in need!');
+    }
+}
+
+// ============================================
+// PATIENT MEDICATION FUNCTIONS
+// ============================================
+
+async function requestMedication() {
+    console.log('\n┌──────────────────────────────────────────────────────────────┐');
+    console.log('│              REQUEST MEDICATION/EQUIPMENT                    │');
+    console.log('└──────────────────────────────────────────────────────────────┘\n');
+    
+    const medication_name = await prompt('Medication/Equipment Name: ');
+    
+    console.log('\nSelect Type:');
+    console.log('  1. Prescription Medication');
+    console.log('  2. Over the Counter');
+    console.log('  3. Medical Equipment');
+    console.log('  4. Medical Supplies');
+    
+    const typeChoice = await prompt('\nEnter choice (1-4): ');
+    const medicationTypes = {
+        '1': 'prescription',
+        '2': 'over_the_counter',
+        '3': 'medical_equipment',
+        '4': 'supplies'
+    };
+    const medication_type = medicationTypes[typeChoice];
+    
+    if (!medication_type) {
+        console.log('\n❌ Invalid type.');
+        return;
+    }
+    
+    const quantity = await prompt('Quantity needed: ');
+    const description = await prompt('Description/Notes: ');
+    
+    console.log('\nUrgency Level:');
+    console.log('  1. Low - Can wait a few days');
+    console.log('  2. Medium - Needed within 1-2 days');
+    console.log('  3. High - Needed today');
+    console.log('  4. Critical - Life-threatening, immediate need');
+    
+    const urgencyChoice = await prompt('\nEnter choice (1-4): ');
+    const urgencyLevels = { '1': 'low', '2': 'medium', '3': 'high', '4': 'critical' };
+    const urgency_level = urgencyLevels[urgencyChoice] || 'medium';
+    
+    const delivery_address = await prompt('\nDelivery Address: ');
+    const delivery_notes = await prompt('Delivery Notes (optional): ');
+    
+    const result = await apiRequest('POST', '/medications', {
+        patient_id: currentUser.id,
+        medication_name,
+        medication_type,
+        quantity,
+        description,
+        urgency_level,
+        delivery_address,
+        delivery_notes
+    });
+    
+    if (result.success) {
+        console.log('\n✅ Medication request submitted successfully!');
+        console.log(`   Request ID: ${result.data.id}`);
+        console.log('\n📦 Volunteers and NGOs can now see your request and fulfill it.');
+    } else {
+        console.log(`\n❌ Error: ${result.error}`);
+    }
+}
+
+async function viewMyMedicationRequests() {
+    console.log('\n📦 My Medication Requests:\n');
+    
+    const result = await apiRequest('GET', `/medications/patient/${currentUser.id}`);
+    
+    if (result.success && result.data.length > 0) {
+        result.data.forEach((r, i) => {
+            const statusIcon = r.status === 'delivered' ? '✅' : 
+                              r.status === 'in_progress' ? '🚚' : 
+                              r.status === 'accepted' ? '👍' : 
+                              r.status === 'pending' ? '⏳' : '❌';
+            const urgencyIcon = r.urgency_level === 'critical' ? '🔴' : 
+                               r.urgency_level === 'high' ? '🟠' : 
+                               r.urgency_level === 'medium' ? '🟡' : '🟢';
+            
+            console.log(`  ${i + 1}. ${statusIcon} ${r.medication_name}`);
+            console.log(`     Type: ${r.medication_type.replace('_', ' ')} | Qty: ${r.quantity}`);
+            console.log(`     Status: ${r.status} | Urgency: ${urgencyIcon} ${r.urgency_level}`);
+            if (r.volunteer_name) {
+                console.log(`     Volunteer: ${r.volunteer_name}${r.organization_name ? ` (${r.organization_name})` : ''}`);
+            }
+            console.log(`     Address: ${r.delivery_address}`);
+            console.log('');
+        });
+        
+        // Option to confirm delivery
+        const confirm = await prompt('Confirm a delivery? (Enter request number or 0 to skip): ');
+        if (confirm !== '0' && confirm !== '') {
+            const index = parseInt(confirm) - 1;
+            if (index >= 0 && index < result.data.length && result.data[index].status === 'delivered') {
+                await confirmDelivery(result.data[index]);
+            }
+        }
+    } else {
+        console.log('  No medication requests found.');
+    }
+}
+
+async function confirmDelivery(request) {
+    console.log(`\n📦 Confirming delivery for: ${request.medication_name}`);
+    
+    const ratingStr = await prompt('Rate the delivery (1-5 stars): ');
+    const rating = parseInt(ratingStr);
+    
+    if (rating < 1 || rating > 5) {
+        console.log('\n❌ Invalid rating.');
+        return;
+    }
+    
+    const feedback = await prompt('Feedback (optional): ');
+    
+    // Get delivery ID
+    const deliveryResult = await apiRequest('GET', `/medications/${request.id}/delivery`);
+    if (!deliveryResult.success) {
+        console.log('\n❌ Could not find delivery record.');
+        return;
+    }
+    
+    const result = await apiRequest('PATCH', `/medications/delivery/${deliveryResult.data.id}/confirm`, {
+        rating,
+        feedback
+    });
+    
+    if (result.success) {
+        console.log('\n✅ Delivery confirmed! Thank you for your feedback.');
+    } else {
+        console.log(`\n❌ Error: ${result.error}`);
+    }
+}
+
+// ============================================
+// VOLUNTEER/NGO FUNCTIONS
+// ============================================
+
+async function registerVolunteer() {
+    console.log('\n┌──────────────────────────────────────────────────────────────┐');
+    console.log('│             VOLUNTEER/NGO REGISTRATION                       │');
+    console.log('└──────────────────────────────────────────────────────────────┘\n');
+    
+    const username = await prompt('Choose a Username: ');
+    const password = await prompt('Choose a Password: ');
+    const confirmPassword = await prompt('Confirm Password: ');
+    
+    if (password !== confirmPassword) {
+        console.log('\n❌ Passwords do not match. Please try again.');
+        return null;
+    }
+    
+    const name = await prompt('Full Name / Organization Name: ');
+    const email = await prompt('Email: ');
+    const phone = await prompt('Phone: ');
+    
+    console.log('\nOrganization Type:');
+    console.log('  1. Individual Volunteer');
+    console.log('  2. NGO');
+    console.log('  3. Pharmacy');
+    console.log('  4. Hospital');
+    console.log('  5. Charity Organization');
+    
+    const typeChoice = await prompt('\nEnter choice (1-5): ');
+    const orgTypes = { '1': 'individual', '2': 'ngo', '3': 'pharmacy', '4': 'hospital', '5': 'charity' };
+    const organization_type = orgTypes[typeChoice] || 'individual';
+    
+    let organization_name = null;
+    if (organization_type !== 'individual') {
+        organization_name = await prompt('Organization Name: ');
+    }
+    
+    const coverage_areas = await prompt('Coverage Areas (e.g., Gaza City, North Gaza): ');
+    
+    const result = await apiRequest('POST', '/volunteers', {
+        username,
+        password,
+        name,
+        email,
+        phone,
+        organization_name,
+        organization_type,
+        coverage_areas
+    });
+    
+    if (result.success) {
+        console.log('\n✅ Registration successful!');
+        console.log(`   Username: ${username}`);
+        console.log('\n   You can now login to start helping patients.');
+    } else {
+        console.log(`\n❌ Registration failed: ${result.error}`);
+    }
+}
+
+async function loginVolunteer() {
+    console.log('\n┌──────────────────────────────────────────────────────────────┐');
+    console.log('│                 VOLUNTEER/NGO LOGIN                          │');
+    console.log('└──────────────────────────────────────────────────────────────┘\n');
+    
+    const username = await prompt('Username: ');
+    const password = await prompt('Password: ');
+    
+    const result = await apiRequest('POST', '/volunteers/login', { username, password });
+    
+    if (result.success) {
+        currentUser = result.data;
+        currentUserType = 'volunteer';
+        console.log(`\n✅ Welcome back, ${currentUser.name}!`);
+        console.log(`   Total deliveries: ${currentUser.total_deliveries} | Rating: ${currentUser.rating}/5`);
+        return true;
+    } else {
+        console.log('\n❌ Invalid username or password. Please try again.\n');
+        return false;
+    }
+}
+
+function printVolunteerMenu() {
+    console.log(`  Logged in as: ${currentUser.name} (${currentUser.organization_type})\n`);
+    console.log('┌──────────────────────────────────────────────────────────────┐');
+    console.log('│                 VOLUNTEER/NGO MENU                           │');
+    console.log('├──────────────────────────────────────────────────────────────┤');
+    console.log('│  === Medication Delivery ===                                 │');
+    console.log('│  1. View Pending Medication Requests                         │');
+    console.log('│  2. View Urgent Requests                                     │');
+    console.log('│  3. Accept a Request                                         │');
+    console.log('│  4. My Accepted Requests                                     │');
+    console.log('│  5. Update Delivery Status                                   │');
+    console.log('│  6. View My Delivery History                                 │');
+    console.log('│                                                              │');
+    console.log('│  === Equipment & Inventory ===                               │');
+    console.log('│  7. List Equipment/Medicine (Add to Inventory)               │');
+    console.log('│  8. View My Inventory Listings                               │');
+    console.log('│  9. View Pending Equipment Requests                          │');
+    console.log('│  10. Fulfill Equipment Request                               │');
+    console.log('│                                                              │');
+    console.log('│  11. Update My Availability                                  │');
+    console.log('│  12. View My Profile                                         │');
+    console.log('│  13. Logout                                                  │');
+    console.log('│  0. Exit                                                     │');
+    console.log('└──────────────────────────────────────────────────────────────┘');
+}
+
+async function viewPendingMedicationRequests() {
+    console.log('\n📦 Pending Medication Requests:\n');
+    
+    const result = await apiRequest('GET', '/medications/pending');
+    
+    if (result.success && result.data.length > 0) {
+        result.data.forEach((r, i) => {
+            const urgencyIcon = r.urgency_level === 'critical' ? '🔴 CRITICAL' : 
+                               r.urgency_level === 'high' ? '🟠 HIGH' : 
+                               r.urgency_level === 'medium' ? '🟡 MEDIUM' : '🟢 LOW';
+            
+            console.log(`  ${i + 1}. ${urgencyIcon}`);
+            console.log(`     📦 ${r.medication_name} (${r.medication_type.replace('_', ' ')})`);
+            console.log(`     👤 Patient: ${r.patient_name} | Phone: ${r.patient_phone}`);
+            console.log(`     📍 ${r.delivery_address}`);
+            if (r.delivery_notes) console.log(`     📝 Notes: ${r.delivery_notes}`);
+            console.log('');
+        });
+    } else {
+        console.log('  No pending requests. Check back later!');
+    }
+}
+
+async function viewUrgentMedicationRequests() {
+    console.log('\n🚨 Urgent Medication Requests:\n');
+    
+    const result = await apiRequest('GET', '/medications/urgent');
+    
+    if (result.success && result.data.length > 0) {
+        result.data.forEach((r, i) => {
+            const urgencyIcon = r.urgency_level === 'critical' ? '🔴 CRITICAL' : '🟠 HIGH';
+            
+            console.log(`  ${i + 1}. ${urgencyIcon}`);
+            console.log(`     📦 ${r.medication_name} (${r.medication_type.replace('_', ' ')})`);
+            console.log(`     👤 Patient: ${r.patient_name} | Phone: ${r.patient_phone}`);
+            console.log(`     📍 ${r.delivery_address}`);
+            console.log('');
+        });
+    } else {
+        console.log('  No urgent requests at the moment. Great job!');
+    }
+}
+
+async function acceptMedicationRequest() {
+    console.log('\n✋ Accept a Medication Request\n');
+    
+    // Show pending requests
+    const pending = await apiRequest('GET', '/medications/pending');
+    
+    if (!pending.success || pending.data.length === 0) {
+        console.log('  No pending requests available.');
+        return;
+    }
+    
+    pending.data.forEach((r, i) => {
+        const urgencyIcon = r.urgency_level === 'critical' ? '🔴' : 
+                           r.urgency_level === 'high' ? '🟠' : '🟡';
+        console.log(`  ${i + 1}. ${urgencyIcon} ${r.medication_name} - ${r.patient_name}`);
+        console.log(`     ${r.delivery_address}`);
+    });
+    
+    const choice = await prompt('\nEnter request number to accept (0 to cancel): ');
+    const index = parseInt(choice) - 1;
+    
+    if (choice === '0' || isNaN(index) || index < 0 || index >= pending.data.length) {
+        console.log('\n  Cancelled.');
+        return;
+    }
+    
+    const request = pending.data[index];
+    
+    const result = await apiRequest('PATCH', `/medications/${request.id}/accept`, {
+        volunteer_id: currentUser.id
+    });
+    
+    if (result.success) {
+        console.log('\n✅ Request accepted! You are now responsible for this delivery.');
+        console.log(`   Patient: ${request.patient_name}`);
+        console.log(`   Phone: ${request.patient_phone}`);
+        console.log(`   Address: ${request.delivery_address}`);
+    } else {
+        console.log(`\n❌ Error: ${result.error}`);
+    }
+}
+
+async function viewMyAcceptedRequests() {
+    console.log('\n📋 My Accepted Requests:\n');
+    
+    const result = await apiRequest('GET', `/medications/volunteer/${currentUser.id}`);
+    
+    if (result.success && result.data.length > 0) {
+        const active = result.data.filter(r => r.status !== 'delivered' && r.status !== 'cancelled');
+        
+        if (active.length > 0) {
+            active.forEach((r, i) => {
+                const statusIcon = r.status === 'in_progress' ? '🚚' : '👍';
+                console.log(`  ${i + 1}. ${statusIcon} ${r.medication_name}`);
+                console.log(`     Patient: ${r.patient_name} | Phone: ${r.patient_phone}`);
+                console.log(`     Status: ${r.status}`);
+                console.log(`     Address: ${r.delivery_address}`);
+                console.log('');
+            });
+        } else {
+            console.log('  No active requests. Accept one to start helping!');
+        }
+    } else {
+        console.log('  No accepted requests found.');
+    }
+}
+
+async function updateDeliveryStatus() {
+    console.log('\n🚚 Update Delivery Status\n');
+    
+    // Get active requests
+    const requests = await apiRequest('GET', `/medications/volunteer/${currentUser.id}`);
+    
+    if (!requests.success) {
+        console.log('  Error loading requests.');
+        return;
+    }
+    
+    const active = requests.data.filter(r => r.status === 'accepted' || r.status === 'in_progress');
+    
+    if (active.length === 0) {
+        console.log('  No active deliveries to update.');
+        return;
+    }
+    
+    active.forEach((r, i) => {
+        console.log(`  ${i + 1}. ${r.medication_name} - ${r.patient_name} (${r.status})`);
+    });
+    
+    const choice = await prompt('\nSelect request to update (0 to cancel): ');
+    const index = parseInt(choice) - 1;
+    
+    if (choice === '0' || isNaN(index) || index < 0 || index >= active.length) {
+        console.log('\n  Cancelled.');
+        return;
+    }
+    
+    const request = active[index];
+    
+    console.log('\nSelect new status:');
+    console.log('  1. Start Delivery (in transit)');
+    console.log('  2. Mark as Delivered');
+    console.log('  3. Mark as Failed');
+    
+    const statusChoice = await prompt('Enter choice: ');
+    
+    if (request.status === 'accepted' && statusChoice === '1') {
+        // Start delivery
+        const pickup = await prompt('Pickup Location: ');
+        const estimated = await prompt('Estimated Delivery Time (YYYY-MM-DD HH:MM): ');
+        
+        const result = await apiRequest('POST', `/medications/${request.id}/deliver`, {
+            volunteer_id: currentUser.id,
+            pickup_location: pickup,
+            estimated_delivery: estimated
+        });
+        
+        if (result.success) {
+            console.log('\n✅ Delivery started!');
+        } else {
+            console.log(`\n❌ Error: ${result.error}`);
+        }
+    } else if (statusChoice === '2' || statusChoice === '3') {
+        // Get delivery record
+        const delivery = await apiRequest('GET', `/medications/${request.id}/delivery`);
+        
+        if (!delivery.success) {
+            // If no delivery record, create one first
+            if (statusChoice === '2') {
+                await apiRequest('POST', `/medications/${request.id}/deliver`, {
+                    volunteer_id: currentUser.id,
+                    pickup_location: 'N/A',
+                    estimated_delivery: new Date().toISOString()
+                });
+            }
+        }
+        
+        const newStatus = statusChoice === '2' ? 'delivered' : 'failed';
+        const notes = await prompt('Notes (optional): ');
+        
+        // Update delivery status
+        const deliveryCheck = await apiRequest('GET', `/medications/${request.id}/delivery`);
+        if (deliveryCheck.success) {
+            await apiRequest('PATCH', `/medications/delivery/${deliveryCheck.data.id}`, {
+                status: newStatus,
+                notes
+            });
+        }
+        
+        console.log(`\n✅ Status updated to: ${newStatus}`);
+    }
+}
+
+async function viewMyDeliveryHistory() {
+    console.log('\n📜 My Delivery History:\n');
+    
+    const result = await apiRequest('GET', `/volunteers/${currentUser.id}/deliveries`);
+    
+    if (result.success && result.data.length > 0) {
+        result.data.forEach((d, i) => {
+            const statusIcon = d.status === 'delivered' ? '✅' : d.status === 'failed' ? '❌' : '🚚';
+            console.log(`  ${i + 1}. ${statusIcon} ${d.medication_name}`);
+            console.log(`     Patient: ${d.patient_name}`);
+            console.log(`     Status: ${d.status}`);
+            if (d.rating) console.log(`     Rating: ${'⭐'.repeat(d.rating)}`);
+            if (d.feedback) console.log(`     Feedback: "${d.feedback}"`);
+            console.log('');
+        });
+        
+        console.log(`  ─────────────────────────────────`);
+        console.log(`  Total Deliveries: ${currentUser.total_deliveries} | Rating: ${currentUser.rating}/5`);
+    } else {
+        console.log('  No delivery history yet. Start accepting requests!');
+    }
+}
+
+async function updateVolunteerAvailability() {
+    console.log('\n📊 Update Availability\n');
+    console.log(`  Current status: ${currentUser.availability_status}\n`);
+    console.log('  Options:');
+    console.log('    1. available');
+    console.log('    2. busy');
+    console.log('    3. offline');
+    
+    const choice = await prompt('\nEnter choice (1-3): ');
+    const statuses = { '1': 'available', '2': 'busy', '3': 'offline' };
+    const status = statuses[choice];
+    
+    if (!status) {
+        console.log('\n❌ Invalid choice.');
+        return;
+    }
+    
+    const result = await apiRequest('PATCH', `/volunteers/${currentUser.id}/availability`, { 
+        availability_status: status 
+    });
+    
+    if (result.success) {
+        currentUser.availability_status = status;
+        console.log(`\n✅ Availability updated to: ${status}`);
+    } else {
+        console.log(`\n❌ Error: ${result.error}`);
+    }
+}
+
+async function volunteerMenuLoop() {
+    while (currentUser && currentUserType === 'volunteer') {
+        printVolunteerMenu();
+        const choice = await prompt('\nEnter your choice: ');
+        
+        switch (choice) {
+            case '1':
+                await viewPendingMedicationRequests();
+                break;
+            case '2':
+                await viewUrgentMedicationRequests();
+                break;
+            case '3':
+                await acceptMedicationRequest();
+                break;
+            case '4':
+                await viewMyAcceptedRequests();
+                break;
+            case '5':
+                await updateDeliveryStatus();
+                break;
+            case '6':
+                await viewMyDeliveryHistory();
+                break;
+            case '7':
+                await listEquipmentToInventory();
+                break;
+            case '8':
+                await viewMyInventoryListings();
+                break;
+            case '9':
+                await viewPendingEquipmentRequests();
+                break;
+            case '10':
+                await fulfillEquipmentRequest();
+                break;
+            case '11':
+                await updateVolunteerAvailability();
+                break;
+            case '12':
+                await viewMyProfile();
+                break;
+            case '13':
+                currentUser = null;
+                currentUserType = null;
+                console.log('\n✅ Logged out successfully.\n');
+                return;
+            case '0':
+                console.log('\n👋 Thank you for using HealthPal. Stay healthy!\n');
+                rl.close();
+                process.exit(0);
+            default:
+                console.log('\n⚠️  Invalid choice. Please try again.');
+        }
+        
+        await prompt('\nPress Enter to continue...');
+        clearScreen();
+        printHeader();
+    }
+}
+
+// ============================================
+// EQUIPMENT FUNCTIONS
+// ============================================
+
+// Patient Equipment Functions
+async function browseAvailableEquipment() {
+    console.log('\n🏥 Available Equipment & Medical Supplies:\n');
+    
+    const result = await apiRequest('GET', '/equipment');
+    
+    if (result.success && result.data.length > 0) {
+        result.data.forEach((e, i) => {
+            const condIcon = e.condition_status === 'new' ? '🆕' : 
+                            e.condition_status === 'like_new' ? '✨' : 
+                            e.condition_status === 'good' ? '👍' : '⚙️';
+            const freeIcon = e.is_free ? '🆓 FREE' : `💵 $${e.price}`;
+            
+            console.log(`  ${i + 1}. ${condIcon} ${e.item_name}`);
+            console.log(`     Type: ${e.item_type.replace(/_/g, ' ')} | Category: ${e.category}`);
+            console.log(`     Qty Available: ${e.available_quantity} | Condition: ${e.condition_status}`);
+            console.log(`     Location: ${e.location}`);
+            console.log(`     ${freeIcon} | Listed by: ${e.listed_by_name}${e.organization_name ? ` (${e.organization_name})` : ''}`);
+            if (e.description) console.log(`     📝 ${e.description}`);
+            console.log('');
+        });
+        
+        console.log('  Use "Request Equipment" to request any item.');
+    } else {
+        console.log('  No equipment available at the moment.');
+    }
+}
+
+async function requestEquipment() {
+    console.log('\n┌──────────────────────────────────────────────────────────────┐');
+    console.log('│                   REQUEST EQUIPMENT                          │');
+    console.log('└──────────────────────────────────────────────────────────────┘\n');
+    
+    // Show available equipment
+    const available = await apiRequest('GET', '/equipment');
+    
+    if (available.success && available.data.length > 0) {
+        console.log('Available Equipment:');
+        available.data.forEach((e, i) => {
+            console.log(`  ${i + 1}. ${e.item_name} (${e.available_quantity} available) - ${e.location}`);
+        });
+        
+        const choice = await prompt('\nSelect equipment number (or 0 to request something else): ');
+        const index = parseInt(choice) - 1;
+        
+        let item_name, item_type, equipment_id = null;
+        
+        if (choice !== '0' && index >= 0 && index < available.data.length) {
+            const selected = available.data[index];
+            item_name = selected.item_name;
+            item_type = selected.item_type;
+            equipment_id = selected.id;
+        } else {
+            item_name = await prompt('\nEquipment/Item Name: ');
+            console.log('\nEquipment Type:');
+            console.log('  1. Oxygen Tank');
+            console.log('  2. Wheelchair');
+            console.log('  3. Hospital Bed');
+            console.log('  4. Crutches');
+            console.log('  5. Nebulizer');
+            console.log('  6. Blood Pressure Monitor');
+            console.log('  7. Glucose Meter');
+            console.log('  8. Other');
+            
+            const typeChoice = await prompt('Enter type (1-8): ');
+            const types = {
+                '1': 'oxygen_tank', '2': 'wheelchair', '3': 'hospital_bed',
+                '4': 'crutches', '5': 'nebulizer', '6': 'blood_pressure_monitor',
+                '7': 'glucose_meter', '8': 'other'
+            };
+            item_type = types[typeChoice] || 'other';
+        }
+        
+        console.log('\nUrgency Level:');
+        console.log('  1. Low - Can wait');
+        console.log('  2. Medium - Needed soon');
+        console.log('  3. High - Needed urgently');
+        console.log('  4. Critical - Immediate need');
+        
+        const urgencyChoice = await prompt('Enter urgency (1-4): ');
+        const urgencies = { '1': 'low', '2': 'medium', '3': 'high', '4': 'critical' };
+        const urgency_level = urgencies[urgencyChoice] || 'medium';
+        
+        const description = await prompt('Additional notes: ');
+        const delivery_address = await prompt('Delivery Address: ');
+        
+        const result = await apiRequest('POST', '/equipment/request', {
+            patient_id: currentUser.id,
+            equipment_id,
+            item_name,
+            item_type,
+            urgency_level,
+            description,
+            delivery_address
+        });
+        
+        if (result.success) {
+            console.log('\n✅ Equipment request submitted!');
+            console.log(`   Request ID: ${result.data.id}`);
+            console.log('\n   Volunteers and organizations will see your request.');
+        } else {
+            console.log(`\n❌ Error: ${result.error}`);
+        }
+    } else {
+        // No equipment available, still allow request
+        const item_name = await prompt('Equipment/Item Name: ');
+        const description = await prompt('Description: ');
+        const delivery_address = await prompt('Delivery Address: ');
+        
+        const result = await apiRequest('POST', '/equipment/request', {
+            patient_id: currentUser.id,
+            item_name,
+            item_type: 'other',
+            urgency_level: 'medium',
+            description,
+            delivery_address
+        });
+        
+        if (result.success) {
+            console.log('\n✅ Equipment request submitted!');
+        } else {
+            console.log(`\n❌ Error: ${result.error}`);
+        }
+    }
+}
+
+// Volunteer Equipment Functions
+async function listEquipmentToInventory() {
+    console.log('\n┌──────────────────────────────────────────────────────────────┐');
+    console.log('│            LIST EQUIPMENT/MEDICINE TO INVENTORY              │');
+    console.log('└──────────────────────────────────────────────────────────────┘\n');
+    
+    const item_name = await prompt('Item Name: ');
+    
+    console.log('\nItem Type:');
+    console.log('  1. Oxygen Tank           6. Crutches');
+    console.log('  2. Wheelchair            7. Blood Pressure Monitor');
+    console.log('  3. Dialysis Machine      8. Glucose Meter');
+    console.log('  4. Nebulizer             9. Medication');
+    console.log('  5. Hospital Bed          10. Surgical Supplies');
+    console.log('  11. PPE (Masks, Gloves)  12. Other');
+    
+    const typeChoice = await prompt('\nEnter type (1-12): ');
+    const types = {
+        '1': 'oxygen_tank', '2': 'wheelchair', '3': 'dialysis_machine',
+        '4': 'nebulizer', '5': 'hospital_bed', '6': 'crutches',
+        '7': 'blood_pressure_monitor', '8': 'glucose_meter', '9': 'medication',
+        '10': 'surgical_supplies', '11': 'ppe', '12': 'other'
+    };
+    const item_type = types[typeChoice] || 'other';
+    
+    console.log('\nCategory:');
+    console.log('  1. Equipment');
+    console.log('  2. Medication');
+    console.log('  3. Supplies');
+    const catChoice = await prompt('Enter category (1-3): ');
+    const categories = { '1': 'equipment', '2': 'medication', '3': 'supplies' };
+    const category = categories[catChoice] || 'equipment';
+    
+    const description = await prompt('Description: ');
+    const quantity = await prompt('Quantity available: ');
+    
+    console.log('\nCondition:');
+    console.log('  1. New');
+    console.log('  2. Like New');
+    console.log('  3. Good');
+    console.log('  4. Fair');
+    const condChoice = await prompt('Enter condition (1-4): ');
+    const conditions = { '1': 'new', '2': 'like_new', '3': 'good', '4': 'fair' };
+    const condition_status = conditions[condChoice] || 'good';
+    
+    const location = await prompt('Location (e.g., Gaza City, Hospital name): ');
+    
+    const isFreeInput = await prompt('Is this free? (yes/no): ');
+    const is_free = isFreeInput.toLowerCase() === 'yes';
+    let price = 0;
+    if (!is_free) {
+        price = parseFloat(await prompt('Price ($): ')) || 0;
+    }
+    
+    const contact_phone = await prompt('Contact Phone: ');
+    
+    const result = await apiRequest('POST', '/equipment', {
+        listed_by_type: 'volunteer',
+        listed_by_id: currentUser.id,
+        item_name,
+        item_type,
+        category,
+        description,
+        quantity: parseInt(quantity) || 1,
+        condition_status,
+        location,
+        is_free,
+        price,
+        contact_phone
+    });
+    
+    if (result.success) {
+        console.log('\n✅ Equipment listed successfully!');
+        console.log(`   Item ID: ${result.data.id}`);
+        console.log('\n   Patients can now see and request this item.');
+    } else {
+        console.log(`\n❌ Error: ${result.error}`);
+    }
+}
+
+async function viewMyInventoryListings() {
+    console.log('\n📦 My Inventory Listings:\n');
+    
+    const result = await apiRequest('GET', `/equipment/volunteer/${currentUser.id}`);
+    
+    if (result.success && result.data.length > 0) {
+        result.data.forEach((e, i) => {
+            const statusIcon = e.is_available ? '🟢' : '🔴';
+            console.log(`  ${i + 1}. ${statusIcon} ${e.item_name}`);
+            console.log(`     Type: ${e.item_type.replace(/_/g, ' ')} | Category: ${e.category}`);
+            console.log(`     Total: ${e.quantity} | Available: ${e.available_quantity}`);
+            console.log(`     Condition: ${e.condition_status} | ${e.is_free ? 'FREE' : `$${e.price}`}`);
+            console.log(`     Location: ${e.location}`);
+            console.log('');
+        });
+    } else {
+        console.log('  No listings yet. Add equipment/medicine to help patients!');
+    }
+}
+
+async function viewPendingEquipmentRequests() {
+    console.log('\n📋 Pending Equipment Requests:\n');
+    
+    const result = await apiRequest('GET', '/equipment/requests/pending');
+    
+    if (result.success && result.data.length > 0) {
+        result.data.forEach((r, i) => {
+            const urgencyIcon = r.urgency_level === 'critical' ? '🔴 CRITICAL' : 
+                               r.urgency_level === 'high' ? '🟠 HIGH' : 
+                               r.urgency_level === 'medium' ? '🟡 MEDIUM' : '🟢 LOW';
+            
+            console.log(`  ${i + 1}. ${urgencyIcon}`);
+            console.log(`     🏥 ${r.item_name}${r.item_type ? ` (${r.item_type})` : ''}`);
+            console.log(`     👤 Patient: ${r.patient_name} | Phone: ${r.patient_phone}`);
+            console.log(`     📍 ${r.delivery_address}`);
+            if (r.description) console.log(`     📝 ${r.description}`);
+            console.log('');
+        });
+    } else {
+        console.log('  No pending equipment requests. Great job!');
+    }
+}
+
+async function fulfillEquipmentRequest() {
+    console.log('\n✋ Fulfill Equipment Request\n');
+    
+    const pending = await apiRequest('GET', '/equipment/requests/pending');
+    
+    if (!pending.success || pending.data.length === 0) {
+        console.log('  No pending requests available.');
+        return;
+    }
+    
+    pending.data.forEach((r, i) => {
+        const urgencyIcon = r.urgency_level === 'critical' ? '🔴' : 
+                           r.urgency_level === 'high' ? '🟠' : '🟡';
+        console.log(`  ${i + 1}. ${urgencyIcon} ${r.item_name} - ${r.patient_name}`);
+    });
+    
+    const choice = await prompt('\nSelect request to fulfill (0 to cancel): ');
+    const index = parseInt(choice) - 1;
+    
+    if (choice === '0' || isNaN(index) || index < 0 || index >= pending.data.length) {
+        console.log('\n  Cancelled.');
+        return;
+    }
+    
+    const request = pending.data[index];
+    
+    // Check if we have matching inventory
+    const myInventory = await apiRequest('GET', `/equipment/volunteer/${currentUser.id}`);
+    let equipment_id = null;
+    
+    if (myInventory.success && myInventory.data.length > 0) {
+        console.log('\nYour available inventory:');
+        myInventory.data.filter(e => e.available_quantity > 0).forEach((e, i) => {
+            console.log(`  ${i + 1}. ${e.item_name} (${e.available_quantity} available)`);
+        });
+        
+        const invChoice = await prompt('Select from inventory (0 to fulfill without inventory): ');
+        const invIndex = parseInt(invChoice) - 1;
+        
+        if (invChoice !== '0' && invIndex >= 0 && invIndex < myInventory.data.length) {
+            equipment_id = myInventory.data[invIndex].id;
+        }
+    }
+    
+    const result = await apiRequest('PATCH', `/equipment/requests/${request.id}/fulfill`, {
+        fulfilled_by_type: 'volunteer',
+        fulfilled_by_id: currentUser.id,
+        equipment_id
+    });
+    
+    if (result.success) {
+        console.log('\n✅ Request fulfilled successfully!');
+        console.log(`   Patient: ${request.patient_name}`);
+        console.log(`   Phone: ${request.patient_phone}`);
+        console.log(`   Address: ${request.delivery_address}`);
+        console.log('\n   Please arrange delivery to the patient.');
+    } else {
+        console.log(`\n❌ Error: ${result.error}`);
     }
 }
 
@@ -1653,7 +2670,15 @@ async function main() {
                 }
                 break;
             case '7':
-                await browseMedicalCases();
+                await registerVolunteer();
+                break;
+            case '8':
+                if (await loginVolunteer()) {
+                    await prompt('\nPress Enter to continue...');
+                    clearScreen();
+                    printHeader();
+                    await volunteerMenuLoop();
+                }
                 break;
             case '0':
                 console.log('\n👋 Thank you for using HealthPal. Stay healthy!\n');
