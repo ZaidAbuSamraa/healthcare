@@ -257,8 +257,15 @@ function printPatientMenu() {
     console.log('│  12. Browse Available Equipment                              │');
     console.log('│  13. Request Equipment                                       │');
     console.log('│                                                              │');
-    console.log('│  14. View My Profile                                         │');
-    console.log('│  15. Logout                                                  │');
+    console.log('│  === Health Education & Alerts ===                           │');
+    console.log('│  14. View Health Guides                                      │');
+    console.log('│  15. View Public Health Alerts                               │');
+    console.log('│  16. Browse Upcoming Workshops                               │');
+    console.log('│  17. Register for Workshop                                   │');
+    console.log('│  18. View My Workshop Registrations                          │');
+    console.log('│                                                              │');
+    console.log('│  19. View My Profile                                         │');
+    console.log('│  20. Logout                                                  │');
     console.log('│  0. Exit                                                     │');
     console.log('└──────────────────────────────────────────────────────────────┘');
 }
@@ -268,15 +275,24 @@ function printDoctorMenu() {
     console.log('┌──────────────────────────────────────────────────────────────┐');
     console.log('│                    DOCTOR MENU                               │');
     console.log('├──────────────────────────────────────────────────────────────┤');
+    console.log('│  === Consultations ===                                       │');
     console.log('│  1. View My Consultations                                    │');
     console.log('│  2. View Consultation Details                                │');
     console.log('│  3. Update Consultation Status                               │');
     console.log('│  4. Add Diagnosis/Prescription                               │');
     console.log('│  5. Send Message to Patient                                  │');
     console.log('│  6. View Messages                                            │');
-    console.log('│  7. Update My Availability                                   │');
-    console.log('│  8. View My Profile                                          │');
-    console.log('│  9. Logout                                                   │');
+    console.log('│                                                              │');
+    console.log('│  === Health Education & Alerts ===                           │');
+    console.log('│  7. Create Health Guide                                      │');
+    console.log('│  8. View My Health Guides                                    │');
+    console.log('│  9. Send Public Health Alert                                 │');
+    console.log('│  10. Create Workshop/Webinar                                 │');
+    console.log('│  11. View My Workshops                                       │');
+    console.log('│                                                              │');
+    console.log('│  12. Update My Availability                                  │');
+    console.log('│  13. View My Profile                                         │');
+    console.log('│  14. Logout                                                  │');
     console.log('│  0. Exit                                                     │');
     console.log('└──────────────────────────────────────────────────────────────┘');
 }
@@ -1169,9 +1185,24 @@ async function patientMenuLoop() {
                 await requestEquipment();
                 break;
             case '14':
-                await viewMyProfile();
+                await viewHealthGuides();
                 break;
             case '15':
+                await viewPublicHealthAlerts();
+                break;
+            case '16':
+                await browseUpcomingWorkshops();
+                break;
+            case '17':
+                await registerForWorkshop();
+                break;
+            case '18':
+                await viewMyWorkshopRegistrations();
+                break;
+            case '19':
+                await viewMyProfile();
+                break;
+            case '20':
                 currentUser = null;
                 currentUserType = null;
                 console.log('\n✅ Logged out successfully.\n');
@@ -1215,12 +1246,27 @@ async function doctorMenuLoop() {
                 await doctorViewMessages();
                 break;
             case '7':
-                await updateMyAvailability();
+                await createHealthGuide();
                 break;
             case '8':
-                await viewMyProfile();
+                await viewMyHealthGuides();
                 break;
             case '9':
+                await sendPublicHealthAlert();
+                break;
+            case '10':
+                await createWorkshop();
+                break;
+            case '11':
+                await viewMyWorkshops();
+                break;
+            case '12':
+                await updateMyAvailability();
+                break;
+            case '13':
+                await viewMyProfile();
+                break;
+            case '14':
                 currentUser = null;
                 currentUserType = null;
                 console.log('\n✅ Logged out successfully.\n');
@@ -1979,9 +2025,15 @@ function printVolunteerMenu() {
     console.log('│  9. View Pending Equipment Requests                          │');
     console.log('│  10. Fulfill Equipment Request                               │');
     console.log('│                                                              │');
-    console.log('│  11. Update My Availability                                  │');
-    console.log('│  12. View My Profile                                         │');
-    console.log('│  13. Logout                                                  │');
+    console.log('│  === Health Education & Workshops ===                        │');
+    console.log('│  11. View Health Guides                                      │');
+    console.log('│  12. View Public Health Alerts                               │');
+    console.log('│  13. Browse Upcoming Workshops                               │');
+    console.log('│  14. Register for Workshop                                   │');
+    console.log('│                                                              │');
+    console.log('│  15. Update My Availability                                  │');
+    console.log('│  16. View My Profile                                         │');
+    console.log('│  17. Logout                                                  │');
     console.log('│  0. Exit                                                     │');
     console.log('└──────────────────────────────────────────────────────────────┘');
 }
@@ -2271,12 +2323,24 @@ async function volunteerMenuLoop() {
                 await fulfillEquipmentRequest();
                 break;
             case '11':
-                await updateVolunteerAvailability();
+                await viewHealthGuides();
                 break;
             case '12':
-                await viewMyProfile();
+                await viewPublicHealthAlerts();
                 break;
             case '13':
+                await browseUpcomingWorkshops();
+                break;
+            case '14':
+                await registerForWorkshop();
+                break;
+            case '15':
+                await updateVolunteerAvailability();
+                break;
+            case '16':
+                await viewMyProfile();
+                break;
+            case '17':
                 currentUser = null;
                 currentUserType = null;
                 console.log('\n✅ Logged out successfully.\n');
@@ -2606,6 +2670,591 @@ async function fulfillEquipmentRequest() {
         console.log('\n   Please arrange delivery to the patient.');
     } else {
         console.log(`\n❌ Error: ${result.error}`);
+    }
+}
+
+// ============================================
+// FEATURE 4: HEALTH EDUCATION & ALERTS FUNCTIONS
+// ============================================
+
+// View Health Guides (for patients and volunteers)
+async function viewHealthGuides() {
+    console.log('\n┌──────────────────────────────────────────────────────────────┐');
+    console.log('│                    HEALTH GUIDES                             │');
+    console.log('└──────────────────────────────────────────────────────────────┘\n');
+    
+    // Handle language preference (patients have it, volunteers may not)
+    const lang = (currentUser.language_preference === 'arabic') ? 'ar' : 'en';
+    
+    console.log('  Select category:');
+    console.log('    1. All Guides');
+    console.log('    2. First Aid');
+    console.log('    3. Chronic Illness');
+    console.log('    4. Nutrition');
+    console.log('    5. Maternal Care');
+    console.log('    6. Child Health');
+    console.log('    7. Mental Health');
+    console.log('    8. Hygiene');
+    console.log('    9. Search Guides');
+    
+    const choice = await prompt('\nEnter choice: ');
+    
+    let result;
+    const categories = {
+        '2': 'first_aid', '3': 'chronic_illness', '4': 'nutrition',
+        '5': 'maternal_care', '6': 'child_health', '7': 'mental_health', '8': 'hygiene'
+    };
+    
+    if (choice === '1') {
+        result = await apiRequest('GET', `/guides?lang=${lang}`);
+    } else if (choice === '9') {
+        const query = await prompt('Search term: ');
+        result = await apiRequest('GET', `/guides/search/${query}?lang=${lang}`);
+    } else if (categories[choice]) {
+        result = await apiRequest('GET', `/guides/category/${categories[choice]}?lang=${lang}`);
+    } else {
+        console.log('\n❌ Invalid choice.');
+        return;
+    }
+    
+    if (result.success && result.data.length > 0) {
+        console.log('\n📚 Health Guides:\n');
+        result.data.forEach((g, i) => {
+            console.log(`  ${i + 1}. 📖 ${g.title}`);
+            console.log(`     Category: ${g.category.replace('_', ' ')} | By: ${g.author_name}`);
+            if (g.summary) console.log(`     ${g.summary}`);
+            console.log(`     Views: ${g.view_count} 👁️`);
+            console.log('');
+        });
+        
+        const viewChoice = await prompt('Enter guide number to read full content (0 to skip): ');
+        if (viewChoice !== '0' && viewChoice !== '') {
+            const index = parseInt(viewChoice) - 1;
+            if (index >= 0 && index < result.data.length) {
+                await viewGuideDetails(result.data[index].id, lang);
+            }
+        }
+    } else {
+        console.log('\n  No guides found.');
+    }
+}
+
+async function viewGuideDetails(guideId, lang) {
+    const result = await apiRequest('GET', `/guides/${guideId}?lang=${lang}`);
+    
+    if (result.success) {
+        const g = result.data;
+        console.log('\n╔══════════════════════════════════════════════════════════════╗');
+        console.log(`║  📖 ${g.title}`);
+        console.log('╚══════════════════════════════════════════════════════════════╝\n');
+        console.log(`  Category: ${g.category.replace('_', ' ')}`);
+        console.log(`  Author: ${g.author_name}`);
+        console.log(`  Views: ${g.view_count}\n`);
+        console.log('  ─── Content ───\n');
+        console.log(`  ${g.content}\n`);
+        if (g.video_url) console.log(`  🎬 Video: ${g.video_url}`);
+    }
+}
+
+// View Public Health Alerts (for patients and volunteers)
+async function viewPublicHealthAlerts() {
+    console.log('\n┌──────────────────────────────────────────────────────────────┐');
+    console.log('│                 PUBLIC HEALTH ALERTS                         │');
+    console.log('└──────────────────────────────────────────────────────────────┘\n');
+    
+    // Handle language preference (patients have it, volunteers may not)
+    const lang = (currentUser.language_preference === 'arabic') ? 'ar' : 'en';
+    
+    console.log('  Filter by:');
+    console.log('    1. All Active Alerts');
+    console.log('    2. Urgent Only (Emergency/Critical)');
+    console.log('    3. Disease Outbreaks');
+    console.log('    4. Water Safety');
+    console.log('    5. Vaccination Campaigns');
+    
+    const choice = await prompt('\nEnter choice: ');
+    
+    let result;
+    switch (choice) {
+        case '1':
+            result = await apiRequest('GET', `/alerts?lang=${lang}`);
+            break;
+        case '2':
+            result = await apiRequest('GET', `/alerts/urgent?lang=${lang}`);
+            break;
+        case '3':
+            result = await apiRequest('GET', `/alerts/type/disease_outbreak?lang=${lang}`);
+            break;
+        case '4':
+            result = await apiRequest('GET', `/alerts/type/water_safety?lang=${lang}`);
+            break;
+        case '5':
+            result = await apiRequest('GET', `/alerts/type/vaccination?lang=${lang}`);
+            break;
+        default:
+            result = await apiRequest('GET', `/alerts?lang=${lang}`);
+    }
+    
+    if (result.success && result.data.length > 0) {
+        console.log('\n🚨 Active Alerts:\n');
+        result.data.forEach((a, i) => {
+            const severityIcon = a.severity === 'emergency' ? '🔴 EMERGENCY' :
+                                a.severity === 'critical' ? '🟠 CRITICAL' :
+                                a.severity === 'warning' ? '🟡 WARNING' : 'ℹ️ INFO';
+            
+            console.log(`  ${i + 1}. ${severityIcon}`);
+            console.log(`     📢 ${a.title}`);
+            console.log(`     Type: ${a.alert_type.replace('_', ' ')}`);
+            console.log(`     ${a.content}`);
+            if (a.affected_areas) console.log(`     📍 Areas: ${a.affected_areas}`);
+            if (a.recommendations) console.log(`     ✅ Recommendations: ${a.recommendations}`);
+            console.log('');
+        });
+    } else {
+        console.log('\n  ✅ No active alerts. Stay safe!');
+    }
+}
+
+// Browse Upcoming Workshops (for patients and volunteers)
+async function browseUpcomingWorkshops() {
+    console.log('\n┌──────────────────────────────────────────────────────────────┐');
+    console.log('│                  UPCOMING WORKSHOPS                          │');
+    console.log('└──────────────────────────────────────────────────────────────┘\n');
+    
+    // Handle language preference (patients have it, volunteers may not)
+    const lang = (currentUser.language_preference === 'arabic') ? 'ar' : 'en';
+    
+    console.log('  Filter by:');
+    console.log('    1. All Upcoming');
+    console.log('    2. Webinars (Online)');
+    console.log('    3. In-Person');
+    console.log('    4. Hybrid');
+    
+    const choice = await prompt('\nEnter choice: ');
+    
+    let result;
+    switch (choice) {
+        case '2':
+            result = await apiRequest('GET', `/workshops/type/webinar?lang=${lang}`);
+            break;
+        case '3':
+            result = await apiRequest('GET', `/workshops/type/in_person?lang=${lang}`);
+            break;
+        case '4':
+            result = await apiRequest('GET', `/workshops/type/hybrid?lang=${lang}`);
+            break;
+        default:
+            result = await apiRequest('GET', `/workshops?lang=${lang}`);
+    }
+    
+    if (result.success && result.data.length > 0) {
+        console.log('\n📅 Upcoming Workshops & Webinars:\n');
+        result.data.forEach((w, i) => {
+            const typeIcon = w.workshop_type === 'webinar' ? '💻' :
+                            w.workshop_type === 'in_person' ? '🏢' : '🔄';
+            const spotsLeft = w.max_participants - w.current_participants;
+            
+            console.log(`  ${i + 1}. ${typeIcon} ${w.title}`);
+            console.log(`     Category: ${w.category.replace('_', ' ')} | Type: ${w.workshop_type}`);
+            console.log(`     Instructor: ${w.instructor_name}`);
+            console.log(`     📅 ${new Date(w.scheduled_date).toLocaleString()}`);
+            console.log(`     ⏱️ Duration: ${w.duration_minutes} minutes`);
+            if (w.location) console.log(`     📍 Location: ${w.location}`);
+            if (w.online_link) console.log(`     🔗 Online: ${w.online_link}`);
+            console.log(`     👥 Spots: ${spotsLeft} remaining (${w.current_participants}/${w.max_participants})`);
+            console.log(`     ${w.is_free ? '🆓 FREE' : `💵 $${w.price}`}`);
+            console.log('');
+        });
+    } else {
+        console.log('\n  No upcoming workshops at the moment.');
+    }
+}
+
+// Register for Workshop (for patients and volunteers)
+async function registerForWorkshop() {
+    console.log('\n┌──────────────────────────────────────────────────────────────┐');
+    console.log('│                REGISTER FOR WORKSHOP                         │');
+    console.log('└──────────────────────────────────────────────────────────────┘\n');
+    
+    // Handle language preference (patients have it, volunteers may not)
+    const lang = (currentUser.language_preference === 'arabic') ? 'ar' : 'en';
+    const workshops = await apiRequest('GET', `/workshops?lang=${lang}`);
+    
+    if (!workshops.success || workshops.data.length === 0) {
+        console.log('  No upcoming workshops available.');
+        return;
+    }
+    
+    console.log('  Available Workshops:\n');
+    workshops.data.forEach((w, i) => {
+        const spotsLeft = w.max_participants - w.current_participants;
+        console.log(`  ${i + 1}. ${w.title}`);
+        console.log(`     📅 ${new Date(w.scheduled_date).toLocaleString()} | Spots: ${spotsLeft} left`);
+    });
+    
+    const choice = await prompt('\nSelect workshop number (0 to cancel): ');
+    const index = parseInt(choice) - 1;
+    
+    if (choice === '0' || isNaN(index) || index < 0 || index >= workshops.data.length) {
+        console.log('\n  Cancelled.');
+        return;
+    }
+    
+    const workshop = workshops.data[index];
+    
+    const result = await apiRequest('POST', `/workshops/${workshop.id}/register`, {
+        participant_type: currentUserType,
+        participant_id: currentUser.id
+    });
+    
+    if (result.success) {
+        console.log('\n✅ Successfully registered for workshop!');
+        console.log(`   Workshop: ${workshop.title}`);
+        console.log(`   Date: ${new Date(workshop.scheduled_date).toLocaleString()}`);
+        if (workshop.online_link) console.log(`   Join link: ${workshop.online_link}`);
+        if (workshop.location) console.log(`   Location: ${workshop.location}`);
+        console.log(`\n   Registration ID: ${result.data.registration_id}`);
+    } else {
+        console.log(`\n❌ Registration failed: ${result.error}`);
+    }
+}
+
+// View My Workshop Registrations (for patients)
+async function viewMyWorkshopRegistrations() {
+    console.log('\n📋 My Workshop Registrations:\n');
+    
+    // We need to get all workshops and check registrations
+    // Since there's no direct endpoint for user registrations, we'll fetch workshops
+    const workshops = await apiRequest('GET', '/workshops');
+    
+    if (!workshops.success || workshops.data.length === 0) {
+        console.log('  No workshops found.');
+        return;
+    }
+    
+    let myRegistrations = [];
+    
+    for (const workshop of workshops.data) {
+        const regs = await apiRequest('GET', `/workshops/${workshop.id}/registrations`);
+        if (regs.success) {
+            const myReg = regs.data.find(r => 
+                r.participant_type === currentUserType && r.participant_id === currentUser.id
+            );
+            if (myReg) {
+                myRegistrations.push({ workshop, registration: myReg });
+            }
+        }
+    }
+    
+    if (myRegistrations.length > 0) {
+        myRegistrations.forEach((item, i) => {
+            const w = item.workshop;
+            const r = item.registration;
+            const statusIcon = r.attended ? '✅ Attended' : '📅 Upcoming';
+            
+            console.log(`  ${i + 1}. ${statusIcon} ${w.title}`);
+            console.log(`     Date: ${new Date(w.scheduled_date).toLocaleString()}`);
+            console.log(`     Type: ${w.workshop_type} | Instructor: ${w.instructor_name}`);
+            if (w.online_link) console.log(`     Join: ${w.online_link}`);
+            if (w.location) console.log(`     Location: ${w.location}`);
+            console.log('');
+        });
+    } else {
+        console.log('  You have not registered for any workshops yet.');
+        console.log('  Use "Browse Upcoming Workshops" to find and register!');
+    }
+}
+
+// ============================================
+// DOCTOR HEALTH EDUCATION FUNCTIONS
+// ============================================
+
+// Create Health Guide (for doctors)
+async function createHealthGuide() {
+    console.log('\n┌──────────────────────────────────────────────────────────────┐');
+    console.log('│                  CREATE HEALTH GUIDE                         │');
+    console.log('└──────────────────────────────────────────────────────────────┘\n');
+    
+    const title = await prompt('Title (English): ');
+    const title_ar = await prompt('Title (Arabic): ');
+    
+    console.log('\nSelect Category:');
+    console.log('  1. First Aid');
+    console.log('  2. Chronic Illness');
+    console.log('  3. Nutrition');
+    console.log('  4. Maternal Care');
+    console.log('  5. Child Health');
+    console.log('  6. Mental Health');
+    console.log('  7. Hygiene');
+    console.log('  8. Emergency');
+    console.log('  9. Medication');
+    
+    const catChoice = await prompt('Enter category (1-9): ');
+    const categories = {
+        '1': 'first_aid', '2': 'chronic_illness', '3': 'nutrition',
+        '4': 'maternal_care', '5': 'child_health', '6': 'mental_health',
+        '7': 'hygiene', '8': 'emergency', '9': 'medication'
+    };
+    const category = categories[catChoice] || 'other';
+    
+    console.log('\nEnter content (English):');
+    const content = await prompt('> ');
+    
+    console.log('\nEnter content (Arabic):');
+    const content_ar = await prompt('> ');
+    
+    const summary = await prompt('\nBrief summary (English): ');
+    const summary_ar = await prompt('Brief summary (Arabic): ');
+    
+    const tags = await prompt('Tags (comma-separated): ');
+    
+    const result = await apiRequest('POST', '/guides', {
+        title,
+        title_ar,
+        category,
+        content,
+        content_ar,
+        summary,
+        summary_ar,
+        author_type: 'doctor',
+        author_id: currentUser.id,
+        author_name: `Dr. ${currentUser.name}`,
+        tags
+    });
+    
+    if (result.success) {
+        console.log('\n✅ Health guide created successfully!');
+        console.log(`   Guide ID: ${result.data.id}`);
+        console.log('   Patients can now view this guide.');
+    } else {
+        console.log(`\n❌ Error: ${result.error}`);
+    }
+}
+
+// View Doctor's Guides
+async function viewMyHealthGuides() {
+    console.log('\n📚 My Health Guides:\n');
+    
+    const result = await apiRequest('GET', '/guides');
+    
+    if (result.success && result.data.length > 0) {
+        const myGuides = result.data.filter(g => 
+            g.author_name && g.author_name.includes(currentUser.name)
+        );
+        
+        if (myGuides.length > 0) {
+            myGuides.forEach((g, i) => {
+                console.log(`  ${i + 1}. 📖 ${g.title}`);
+                console.log(`     Category: ${g.category.replace('_', ' ')}`);
+                console.log(`     Views: ${g.view_count} 👁️`);
+                console.log('');
+            });
+        } else {
+            console.log('  You have not created any guides yet.');
+        }
+    } else {
+        console.log('  No guides found.');
+    }
+}
+
+// Send Public Health Alert (for doctors)
+async function sendPublicHealthAlert() {
+    console.log('\n┌──────────────────────────────────────────────────────────────┐');
+    console.log('│                SEND PUBLIC HEALTH ALERT                      │');
+    console.log('└──────────────────────────────────────────────────────────────┘\n');
+    
+    const title = await prompt('Alert Title (English): ');
+    const title_ar = await prompt('Alert Title (Arabic): ');
+    
+    console.log('\nAlert Type:');
+    console.log('  1. Disease Outbreak');
+    console.log('  2. Air Quality');
+    console.log('  3. Water Safety');
+    console.log('  4. Urgent Medical');
+    console.log('  5. Vaccination Campaign');
+    console.log('  6. Emergency');
+    console.log('  7. General');
+    
+    const typeChoice = await prompt('Enter type (1-7): ');
+    const types = {
+        '1': 'disease_outbreak', '2': 'air_quality', '3': 'water_safety',
+        '4': 'urgent_medical', '5': 'vaccination', '6': 'emergency', '7': 'general'
+    };
+    const alert_type = types[typeChoice] || 'general';
+    
+    console.log('\nSeverity Level:');
+    console.log('  1. Info (ℹ️)');
+    console.log('  2. Warning (🟡)');
+    console.log('  3. Critical (🟠)');
+    console.log('  4. Emergency (🔴)');
+    
+    const sevChoice = await prompt('Enter severity (1-4): ');
+    const severities = { '1': 'info', '2': 'warning', '3': 'critical', '4': 'emergency' };
+    const severity = severities[sevChoice] || 'info';
+    
+    console.log('\nAlert Content (English):');
+    const content = await prompt('> ');
+    
+    console.log('\nAlert Content (Arabic):');
+    const content_ar = await prompt('> ');
+    
+    const affected_areas = await prompt('\nAffected Areas (e.g., Gaza City, Khan Yunis): ');
+    
+    console.log('\nRecommendations (English):');
+    const recommendations = await prompt('> ');
+    
+    console.log('\nRecommendations (Arabic):');
+    const recommendations_ar = await prompt('> ');
+    
+    const result = await apiRequest('POST', '/alerts', {
+        title,
+        title_ar,
+        alert_type,
+        severity,
+        content,
+        content_ar,
+        affected_areas,
+        recommendations,
+        recommendations_ar,
+        source: `Dr. ${currentUser.name} - ${currentUser.specialty}`,
+        created_by_type: 'doctor',
+        created_by_id: currentUser.id
+    });
+    
+    if (result.success) {
+        console.log('\n✅ Alert sent successfully!');
+        console.log(`   Alert ID: ${result.data.id}`);
+        console.log('   This alert is now visible to all patients and volunteers.');
+    } else {
+        console.log(`\n❌ Error: ${result.error}`);
+    }
+}
+
+// Create Workshop/Webinar (for doctors)
+async function createWorkshop() {
+    console.log('\n┌──────────────────────────────────────────────────────────────┐');
+    console.log('│                CREATE WORKSHOP/WEBINAR                       │');
+    console.log('└──────────────────────────────────────────────────────────────┘\n');
+    
+    const title = await prompt('Title (English): ');
+    const title_ar = await prompt('Title (Arabic): ');
+    
+    console.log('\nDescription (English):');
+    const description = await prompt('> ');
+    
+    console.log('\nDescription (Arabic):');
+    const description_ar = await prompt('> ');
+    
+    console.log('\nWorkshop Type:');
+    console.log('  1. Webinar (Online only)');
+    console.log('  2. In-Person');
+    console.log('  3. Hybrid (Both)');
+    
+    const typeChoice = await prompt('Enter type (1-3): ');
+    const types = { '1': 'webinar', '2': 'in_person', '3': 'hybrid' };
+    const workshop_type = types[typeChoice] || 'webinar';
+    
+    console.log('\nCategory:');
+    console.log('  1. First Aid');
+    console.log('  2. Chronic Illness');
+    console.log('  3. Nutrition');
+    console.log('  4. Maternal Care');
+    console.log('  5. Child Health');
+    console.log('  6. Mental Health');
+    console.log('  7. General');
+    
+    const catChoice = await prompt('Enter category (1-7): ');
+    const categories = {
+        '1': 'first_aid', '2': 'chronic_illness', '3': 'nutrition',
+        '4': 'maternal_care', '5': 'child_health', '6': 'mental_health', '7': 'general'
+    };
+    const category = categories[catChoice] || 'general';
+    
+    const scheduled_date = await prompt('\nDate & Time (YYYY-MM-DD HH:MM): ');
+    const duration_minutes = await prompt('Duration (minutes): ');
+    
+    let location = null;
+    let online_link = null;
+    
+    if (workshop_type === 'in_person' || workshop_type === 'hybrid') {
+        location = await prompt('Location: ');
+    }
+    if (workshop_type === 'webinar' || workshop_type === 'hybrid') {
+        online_link = await prompt('Online Meeting Link: ');
+    }
+    
+    const max_participants = await prompt('Maximum Participants: ');
+    
+    console.log('\nLanguage:');
+    console.log('  1. Arabic');
+    console.log('  2. English');
+    console.log('  3. Both');
+    const langChoice = await prompt('Enter choice (1-3): ');
+    const languages = { '1': 'arabic', '2': 'english', '3': 'both' };
+    const language = languages[langChoice] || 'arabic';
+    
+    const result = await apiRequest('POST', '/workshops', {
+        title,
+        title_ar,
+        description,
+        description_ar,
+        workshop_type,
+        category,
+        instructor_name: `Dr. ${currentUser.name}`,
+        instructor_title: currentUser.specialty.replace('_', ' '),
+        instructor_id: currentUser.id,
+        instructor_type: 'doctor',
+        scheduled_date,
+        duration_minutes: parseInt(duration_minutes) || 60,
+        location,
+        online_link,
+        max_participants: parseInt(max_participants) || 100,
+        is_free: true,
+        language
+    });
+    
+    if (result.success) {
+        console.log('\n✅ Workshop created successfully!');
+        console.log(`   Workshop ID: ${result.data.id}`);
+        console.log('   Patients and volunteers can now register.');
+    } else {
+        console.log(`\n❌ Error: ${result.error}`);
+    }
+}
+
+// View Doctor's Workshops
+async function viewMyWorkshops() {
+    console.log('\n📅 My Workshops:\n');
+    
+    const result = await apiRequest('GET', '/workshops');
+    
+    if (result.success && result.data.length > 0) {
+        const myWorkshops = result.data.filter(w => w.instructor_id === currentUser.id);
+        
+        if (myWorkshops.length > 0) {
+            for (const w of myWorkshops) {
+                const statusIcon = w.status === 'completed' ? '✅' :
+                                  w.status === 'ongoing' ? '🔴 LIVE' :
+                                  w.status === 'cancelled' ? '❌' : '📅';
+                
+                console.log(`  ${statusIcon} ${w.title}`);
+                console.log(`     Type: ${w.workshop_type} | Category: ${w.category}`);
+                console.log(`     Date: ${new Date(w.scheduled_date).toLocaleString()}`);
+                console.log(`     Registered: ${w.current_participants}/${w.max_participants}`);
+                console.log(`     Status: ${w.status}`);
+                
+                // Get registrations
+                const regs = await apiRequest('GET', `/workshops/${w.id}/registrations`);
+                if (regs.success && regs.data.length > 0) {
+                    console.log(`     📋 Registrations: ${regs.data.length}`);
+                }
+                console.log('');
+            }
+        } else {
+            console.log('  You have not created any workshops yet.');
+        }
+    } else {
+        console.log('  No workshops found.');
     }
 }
 

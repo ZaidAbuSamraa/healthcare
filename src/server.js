@@ -18,6 +18,11 @@ const volunteersRouter = require('./routes/volunteers');
 const medicationRequestsRouter = require('./routes/medication-requests');
 const equipmentRouter = require('./routes/equipment');
 
+// Feature 4: Health Education & Public Health Alerts
+const healthGuidesRouter = require('./routes/health-guides');
+const alertsRouter = require('./routes/alerts');
+const workshopsRouter = require('./routes/workshops');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -41,6 +46,11 @@ app.use('/api/volunteers', volunteersRouter);
 app.use('/api/medications', medicationRequestsRouter);
 app.use('/api/equipment', equipmentRouter);
 
+// Feature 4 Routes: Health Education & Public Health Alerts
+app.use('/api/guides', healthGuidesRouter);
+app.use('/api/alerts', alertsRouter);
+app.use('/api/workshops', workshopsRouter);
+
 // Health check
 app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', message: 'HealthPal API is running' });
@@ -50,12 +60,13 @@ app.get('/api/health', (req, res) => {
 app.get('/api', (req, res) => {
     res.json({
         name: 'HealthPal API',
-        version: '2.0.0',
-        description: 'Remote Medical Consultations, Medical Sponsorship & Medication Coordination Platform',
+        version: '3.0.0',
+        description: 'Remote Medical Consultations, Medical Sponsorship, Medication Coordination & Health Education Platform',
         features: {
             feature1: 'Remote Medical Consultations',
             feature2: 'Medical Sponsorship System',
-            feature3: 'Medication & Equipment Coordination'
+            feature3: 'Medication & Equipment Coordination',
+            feature4: 'Health Education & Public Health Alerts'
         },
         endpoints: {
             // Feature 1: Remote Medical Consultations
@@ -175,6 +186,46 @@ app.get('/api', (req, res) => {
                 'GET /api/equipment/requests/patient/:patientId': 'Get patient equipment requests',
                 'GET /api/equipment/requests/pending': 'Get pending requests (volunteer)',
                 'PATCH /api/equipment/requests/:id/fulfill': 'Fulfill equipment request'
+            },
+            // Feature 4: Health Education & Public Health Alerts
+            health_guides: {
+                'GET /api/guides': 'List all health guides',
+                'GET /api/guides/category/:category': 'Get guides by category',
+                'GET /api/guides/search/:query': 'Search guides',
+                'GET /api/guides/:id': 'Get guide details',
+                'GET /api/guides/stats/popular': 'Get popular guides',
+                'GET /api/guides/stats/categories': 'Get categories with count',
+                'POST /api/guides': 'Create new guide',
+                'PUT /api/guides/:id': 'Update guide',
+                'DELETE /api/guides/:id': 'Delete guide'
+            },
+            public_alerts: {
+                'GET /api/alerts': 'List all active alerts',
+                'GET /api/alerts/type/:type': 'Get alerts by type',
+                'GET /api/alerts/severity/:severity': 'Get alerts by severity',
+                'GET /api/alerts/urgent': 'Get emergency/critical alerts',
+                'GET /api/alerts/area/:area': 'Get alerts by area',
+                'GET /api/alerts/:id': 'Get alert details',
+                'POST /api/alerts': 'Create new alert',
+                'PUT /api/alerts/:id': 'Update alert',
+                'PATCH /api/alerts/:id/deactivate': 'Deactivate alert',
+                'DELETE /api/alerts/:id': 'Delete alert'
+            },
+            workshops: {
+                'GET /api/workshops': 'List upcoming workshops',
+                'GET /api/workshops/type/:type': 'Get workshops by type',
+                'GET /api/workshops/category/:category': 'Get workshops by category',
+                'GET /api/workshops/archive/completed': 'Get completed workshops with recordings',
+                'GET /api/workshops/:id': 'Get workshop details',
+                'GET /api/workshops/:id/registrations': 'Get workshop registrations',
+                'POST /api/workshops': 'Create new workshop',
+                'POST /api/workshops/:id/register': 'Register for workshop',
+                'PUT /api/workshops/:id': 'Update workshop',
+                'PATCH /api/workshops/:id/status': 'Update workshop status',
+                'DELETE /api/workshops/:id': 'Delete workshop',
+                'DELETE /api/workshops/:id/register/:registrationId': 'Cancel registration',
+                'PATCH /api/workshops/registrations/:registrationId/attend': 'Mark attendance',
+                'PATCH /api/workshops/registrations/:registrationId/feedback': 'Submit feedback'
             }
         },
         enums: {
@@ -190,7 +241,13 @@ app.get('/api', (req, res) => {
             request_status: ['pending', 'accepted', 'in_progress', 'delivered', 'cancelled'],
             equipment_types: ['oxygen_tank', 'wheelchair', 'dialysis_machine', 'nebulizer', 'hospital_bed', 'crutches', 'blood_pressure_monitor', 'glucose_meter', 'medication', 'surgical_supplies', 'ppe', 'other'],
             equipment_categories: ['equipment', 'medication', 'supplies'],
-            condition_status: ['new', 'like_new', 'good', 'fair', 'for_parts']
+            condition_status: ['new', 'like_new', 'good', 'fair', 'for_parts'],
+            // Feature 4 enums
+            guide_categories: ['first_aid', 'chronic_illness', 'nutrition', 'maternal_care', 'child_health', 'mental_health', 'hygiene', 'emergency', 'medication', 'other'],
+            alert_types: ['disease_outbreak', 'air_quality', 'water_safety', 'urgent_medical', 'vaccination', 'emergency', 'general'],
+            alert_severity: ['info', 'warning', 'critical', 'emergency'],
+            workshop_types: ['webinar', 'in_person', 'hybrid'],
+            workshop_status: ['upcoming', 'ongoing', 'completed', 'cancelled']
         }
     });
 });

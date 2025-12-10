@@ -316,6 +316,111 @@ async function setupDatabase() {
     `);
     console.log('Equipment requests table created');
 
+    // ============================================
+    // FEATURE 4: HEALTH EDUCATION & PUBLIC HEALTH ALERTS
+    // ============================================
+
+    // Create health_guides table (Localized Health Guides)
+    await connection.query(`
+        CREATE TABLE IF NOT EXISTS health_guides (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            title VARCHAR(255) NOT NULL,
+            title_ar VARCHAR(255) NOT NULL,
+            category ENUM('first_aid', 'chronic_illness', 'nutrition', 'maternal_care', 'child_health', 'mental_health', 'hygiene', 'emergency', 'medication', 'other') NOT NULL,
+            content TEXT NOT NULL,
+            content_ar TEXT NOT NULL,
+            summary VARCHAR(500),
+            summary_ar VARCHAR(500),
+            image_url VARCHAR(255),
+            video_url VARCHAR(255),
+            author_type ENUM('doctor', 'admin', 'organization') NOT NULL,
+            author_id INT,
+            author_name VARCHAR(255),
+            is_published BOOLEAN DEFAULT TRUE,
+            view_count INT DEFAULT 0,
+            tags VARCHAR(255),
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        )
+    `);
+    console.log('Health guides table created');
+
+    // Create public_health_alerts table (Real-time alerts)
+    await connection.query(`
+        CREATE TABLE IF NOT EXISTS public_health_alerts (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            title VARCHAR(255) NOT NULL,
+            title_ar VARCHAR(255) NOT NULL,
+            alert_type ENUM('disease_outbreak', 'air_quality', 'water_safety', 'urgent_medical', 'vaccination', 'emergency', 'general') NOT NULL,
+            severity ENUM('info', 'warning', 'critical', 'emergency') DEFAULT 'info',
+            content TEXT NOT NULL,
+            content_ar TEXT NOT NULL,
+            affected_areas TEXT,
+            recommendations TEXT,
+            recommendations_ar TEXT,
+            source VARCHAR(255),
+            is_active BOOLEAN DEFAULT TRUE,
+            start_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+            end_date DATETIME,
+            created_by_type ENUM('admin', 'doctor', 'organization') NOT NULL,
+            created_by_id INT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        )
+    `);
+    console.log('Public health alerts table created');
+
+    // Create workshops table (Workshops & Webinars)
+    await connection.query(`
+        CREATE TABLE IF NOT EXISTS workshops (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            title VARCHAR(255) NOT NULL,
+            title_ar VARCHAR(255) NOT NULL,
+            description TEXT NOT NULL,
+            description_ar TEXT NOT NULL,
+            workshop_type ENUM('webinar', 'in_person', 'hybrid') NOT NULL,
+            category ENUM('first_aid', 'chronic_illness', 'nutrition', 'maternal_care', 'child_health', 'mental_health', 'hygiene', 'emergency', 'general') NOT NULL,
+            instructor_name VARCHAR(255) NOT NULL,
+            instructor_title VARCHAR(255),
+            instructor_id INT,
+            instructor_type ENUM('doctor', 'volunteer', 'external') DEFAULT 'doctor',
+            scheduled_date DATETIME NOT NULL,
+            duration_minutes INT DEFAULT 60,
+            location VARCHAR(255),
+            online_link VARCHAR(255),
+            max_participants INT DEFAULT 100,
+            current_participants INT DEFAULT 0,
+            is_free BOOLEAN DEFAULT TRUE,
+            price DECIMAL(10, 2) DEFAULT 0.00,
+            language ENUM('arabic', 'english', 'both') DEFAULT 'arabic',
+            status ENUM('upcoming', 'ongoing', 'completed', 'cancelled') DEFAULT 'upcoming',
+            recording_url VARCHAR(255),
+            materials_url VARCHAR(255),
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        )
+    `);
+    console.log('Workshops table created');
+
+    // Create workshop_registrations table
+    await connection.query(`
+        CREATE TABLE IF NOT EXISTS workshop_registrations (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            workshop_id INT NOT NULL,
+            participant_type ENUM('patient', 'volunteer', 'guest') NOT NULL,
+            participant_id INT,
+            guest_name VARCHAR(255),
+            guest_email VARCHAR(255),
+            guest_phone VARCHAR(50),
+            attended BOOLEAN DEFAULT FALSE,
+            feedback TEXT,
+            rating INT,
+            registered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (workshop_id) REFERENCES workshops(id) ON DELETE CASCADE
+        )
+    `);
+    console.log('Workshop registrations table created');
+
     // Insert sample doctors (password: password123)
     await connection.query(`
         INSERT IGNORE INTO doctors (username, password, name, email, phone, specialty, languages, is_international, availability_status, bio, years_of_experience) VALUES
@@ -435,6 +540,113 @@ async function setupDatabase() {
         ('donor', 4, 'Walking Canes', 'crutches', 'equipment', 'Adjustable aluminum walking canes', 8, 8, 'new', 'Charity Foundation Office', TRUE, TRUE, '+972-50-1234567')
     `);
     console.log('Sample equipment inventory inserted');
+
+    // Insert sample health guides
+    await connection.query(`
+        INSERT IGNORE INTO health_guides (title, title_ar, category, content, content_ar, summary, summary_ar, author_type, author_name, tags) VALUES
+        ('First Aid Basics', 'أساسيات الإسعافات الأولية', 'first_aid', 
+         'Learn the essential first aid techniques including CPR, wound care, and emergency response. Always ensure scene safety before providing help.',
+         'تعلم تقنيات الإسعافات الأولية الأساسية بما في ذلك الإنعاش القلبي الرئوي والعناية بالجروح والاستجابة للطوارئ. تأكد دائماً من سلامة المكان قبل تقديم المساعدة.',
+         'Essential first aid techniques for emergencies',
+         'تقنيات الإسعافات الأولية الأساسية للطوارئ',
+         'doctor', 'Dr. Ahmad Hassan', 'first_aid,emergency,cpr'),
+        ('Managing Diabetes', 'إدارة مرض السكري', 'chronic_illness',
+         'Diabetes management includes monitoring blood sugar levels, taking medications as prescribed, eating a balanced diet, and regular exercise.',
+         'تشمل إدارة مرض السكري مراقبة مستويات السكر في الدم وتناول الأدوية حسب الوصفة الطبية واتباع نظام غذائي متوازن وممارسة التمارين الرياضية بانتظام.',
+         'Complete guide to managing diabetes daily',
+         'دليل شامل لإدارة مرض السكري يومياً',
+         'doctor', 'Dr. Ahmad Hassan', 'diabetes,chronic,nutrition'),
+        ('Maternal Care During Pregnancy', 'رعاية الأم أثناء الحمل', 'maternal_care',
+         'Prenatal care is essential for a healthy pregnancy. Regular checkups, proper nutrition, and avoiding harmful substances are key.',
+         'الرعاية قبل الولادة ضرورية لحمل صحي. الفحوصات المنتظمة والتغذية السليمة وتجنب المواد الضارة أمور أساسية.',
+         'Essential prenatal care guide for expecting mothers',
+         'دليل الرعاية الأساسية للأمهات الحوامل',
+         'doctor', 'Dr. Layla Nasser', 'pregnancy,maternal,prenatal'),
+        ('Child Nutrition Guide', 'دليل تغذية الطفل', 'child_health',
+         'Proper nutrition is vital for child development. Include proteins, vitamins, and minerals in daily meals. Breastfeeding is recommended for the first 6 months.',
+         'التغذية السليمة ضرورية لنمو الطفل. تضمين البروتينات والفيتامينات والمعادن في الوجبات اليومية. يُنصح بالرضاعة الطبيعية خلال الأشهر الستة الأولى.',
+         'Nutrition guide for healthy child development',
+         'دليل التغذية لنمو صحي للأطفال',
+         'doctor', 'Dr. Sarah Miller', 'nutrition,children,development'),
+        ('Mental Health Awareness', 'التوعية بالصحة النفسية', 'mental_health',
+         'Mental health is as important as physical health. Recognize signs of stress, anxiety, and depression. Seek help when needed.',
+         'الصحة النفسية لا تقل أهمية عن الصحة الجسدية. تعرف على علامات التوتر والقلق والاكتئاب. اطلب المساعدة عند الحاجة.',
+         'Understanding and maintaining mental health',
+         'فهم الصحة النفسية والحفاظ عليها',
+         'doctor', 'Dr. Fatima Al-Masri', 'mental_health,stress,anxiety'),
+        ('Hand Hygiene and Infection Prevention', 'نظافة اليدين والوقاية من العدوى', 'hygiene',
+         'Proper handwashing with soap for 20 seconds is the most effective way to prevent infections. Wash hands before eating and after using the bathroom.',
+         'غسل اليدين بالصابون لمدة 20 ثانية هو أكثر الطرق فعالية للوقاية من العدوى. اغسل يديك قبل الأكل وبعد استخدام الحمام.',
+         'Proper handwashing techniques to prevent infections',
+         'تقنيات غسل اليدين الصحيحة للوقاية من العدوى',
+         'organization', 'Ministry of Health', 'hygiene,infection,prevention')
+    `);
+    console.log('Sample health guides inserted');
+
+    // Insert sample public health alerts
+    await connection.query(`
+        INSERT IGNORE INTO public_health_alerts (title, title_ar, alert_type, severity, content, content_ar, affected_areas, recommendations, recommendations_ar, source, created_by_type) VALUES
+        ('Respiratory Illness Outbreak', 'تفشي أمراض الجهاز التنفسي', 'disease_outbreak', 'warning',
+         'Increased cases of respiratory illness reported in Gaza City. Please take precautions.',
+         'تم الإبلاغ عن زيادة في حالات أمراض الجهاز التنفسي في مدينة غزة. يرجى اتخاذ الاحتياطات.',
+         'Gaza City, North Gaza',
+         'Wear masks in crowded areas, wash hands frequently, avoid contact with sick individuals',
+         'ارتداء الكمامات في الأماكن المزدحمة، غسل اليدين بشكل متكرر، تجنب الاتصال بالمرضى',
+         'Ministry of Health', 'admin'),
+        ('Water Quality Advisory', 'تحذير بشأن جودة المياه', 'water_safety', 'critical',
+         'Water quality issues detected in Khan Yunis area. Boil water before drinking.',
+         'تم اكتشاف مشاكل في جودة المياه في منطقة خان يونس. يجب غلي الماء قبل الشرب.',
+         'Khan Yunis, Rafah',
+         'Boil all drinking water for at least 1 minute. Use bottled water if available.',
+         'غلي جميع مياه الشرب لمدة دقيقة واحدة على الأقل. استخدم المياه المعبأة إذا توفرت.',
+         'Water Authority', 'admin'),
+        ('Vaccination Campaign', 'حملة التطعيم', 'vaccination', 'info',
+         'Free polio vaccination campaign for children under 5 years starting next week.',
+         'حملة تطعيم مجانية ضد شلل الأطفال للأطفال دون سن الخامسة تبدأ الأسبوع القادم.',
+         'All Gaza Strip',
+         'Bring children to nearest health center. Bring vaccination card.',
+         'أحضر الأطفال إلى أقرب مركز صحي. أحضر بطاقة التطعيم.',
+         'UNICEF & Ministry of Health', 'organization'),
+        ('Urgent Blood Donation Needed', 'حاجة عاجلة للتبرع بالدم', 'urgent_medical', 'emergency',
+         'Blood banks are running low. All blood types needed urgently.',
+         'بنوك الدم تنفد. جميع فصائل الدم مطلوبة بشكل عاجل.',
+         'All Gaza Strip',
+         'Visit nearest hospital blood bank. Donation takes only 15 minutes.',
+         'قم بزيارة أقرب بنك دم في المستشفى. التبرع يستغرق 15 دقيقة فقط.',
+         'Gaza Blood Bank', 'admin')
+    `);
+    console.log('Sample public health alerts inserted');
+
+    // Insert sample workshops
+    await connection.query(`
+        INSERT IGNORE INTO workshops (title, title_ar, description, description_ar, workshop_type, category, instructor_name, instructor_title, instructor_type, scheduled_date, duration_minutes, location, online_link, max_participants, language, status) VALUES
+        ('First Aid Training', 'تدريب الإسعافات الأولية', 
+         'Learn essential first aid skills including CPR, wound care, and emergency response.',
+         'تعلم مهارات الإسعافات الأولية الأساسية بما في ذلك الإنعاش القلبي الرئوي والعناية بالجروح والاستجابة للطوارئ.',
+         'in_person', 'first_aid', 'Dr. Ahmad Hassan', 'General Practitioner', 'doctor',
+         '2025-02-15 10:00:00', 120, 'Gaza Community Center', NULL, 30, 'arabic', 'upcoming'),
+        ('Managing Stress and Anxiety', 'إدارة التوتر والقلق',
+         'Online webinar about coping mechanisms for stress and anxiety in difficult times.',
+         'ندوة عبر الإنترنت حول آليات التعامل مع التوتر والقلق في الأوقات الصعبة.',
+         'webinar', 'mental_health', 'Dr. Fatima Al-Masri', 'Mental Health Specialist', 'doctor',
+         '2025-02-10 18:00:00', 90, NULL, 'https://meet.healthpal.ps/mental-health-101', 100, 'arabic', 'upcoming'),
+        ('Child Nutrition Workshop', 'ورشة تغذية الطفل',
+         'Learn about proper nutrition for children of all ages.',
+         'تعرف على التغذية السليمة للأطفال من جميع الأعمار.',
+         'hybrid', 'nutrition', 'Dr. Layla Nasser', 'Pediatrician', 'doctor',
+         '2025-02-20 14:00:00', 60, 'Gaza Medical Center', 'https://meet.healthpal.ps/nutrition', 50, 'both', 'upcoming'),
+        ('Diabetes Management Class', 'فصل إدارة مرض السكري',
+         'Monthly support group and education session for diabetes patients.',
+         'مجموعة دعم شهرية وجلسة تثقيفية لمرضى السكري.',
+         'in_person', 'chronic_illness', 'Dr. Ahmad Hassan', 'General Practitioner', 'doctor',
+         '2025-02-05 11:00:00', 90, 'Gaza Health Clinic', NULL, 25, 'arabic', 'upcoming'),
+        ('Maternal Health Webinar', 'ندوة صحة الأم',
+         'Prenatal care and healthy pregnancy practices for expecting mothers.',
+         'الرعاية السابقة للولادة وممارسات الحمل الصحي للأمهات الحوامل.',
+         'webinar', 'maternal_care', 'Dr. Sarah Miller', 'Pediatrician', 'doctor',
+         '2025-02-25 16:00:00', 75, NULL, 'https://meet.healthpal.ps/maternal-care', 80, 'both', 'upcoming')
+    `);
+    console.log('Sample workshops inserted');
 
     await connection.end();
     console.log('\n✓ Database setup completed successfully!');
