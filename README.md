@@ -36,47 +36,7 @@ A digital healthcare platform designed to provide Palestinians with access to me
 - MySQL Server (XAMPP recommended)
 - npm
 
-## Installation
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/ZaidAbuSamraa/healthcare.git
-   cd healthcare
-   ```
-
-2. **Install dependencies:**
-   ```bash
-   npm install
-   ```
-
-3. **Configure database:**
-   - Make sure MySQL is running (start XAMPP MySQL)
-   - Create `.env` file with your database credentials:
-     ```
-     DB_HOST=localhost
-     DB_USER=root
-     DB_PASSWORD=
-     DB_NAME=healthpal
-     ```
-
-4. **Setup database:**
-   ```bash
-   npm run setup-db
-   ```
-
-## Running the Application
-
-### Start the API Server
-```bash
-npm run server
-```
-The API will be available at `http://localhost:3000`
-
-### Start the CLI Interface
-In a new terminal:
-```bash
-npm run cli
-```
 
 ## API Endpoints
 
