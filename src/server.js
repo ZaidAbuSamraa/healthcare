@@ -23,6 +23,9 @@ const healthGuidesRouter = require('./routes/health-guides');
 const alertsRouter = require('./routes/alerts');
 const workshopsRouter = require('./routes/workshops');
 
+// Feature 5: Mental Health & Trauma Support
+const mentalHealthRouter = require('./routes/mental-health');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -51,6 +54,9 @@ app.use('/api/guides', healthGuidesRouter);
 app.use('/api/alerts', alertsRouter);
 app.use('/api/workshops', workshopsRouter);
 
+// Feature 5 Routes: Mental Health & Trauma Support
+app.use('/api/mental-health', mentalHealthRouter);
+
 // Health check
 app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', message: 'HealthPal API is running' });
@@ -66,7 +72,8 @@ app.get('/api', (req, res) => {
             feature1: 'Remote Medical Consultations',
             feature2: 'Medical Sponsorship System',
             feature3: 'Medication & Equipment Coordination',
-            feature4: 'Health Education & Public Health Alerts'
+            feature4: 'Health Education & Public Health Alerts',
+            feature5: 'Mental Health & Trauma Support'
         },
         endpoints: {
             // Feature 1: Remote Medical Consultations
