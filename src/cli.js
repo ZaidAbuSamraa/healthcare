@@ -264,8 +264,17 @@ function printPatientMenu() {
     console.log('│  17. Register for Workshop                                   │');
     console.log('│  18. View My Workshop Registrations                          │');
     console.log('│                                                              │');
-    console.log('│  19. View My Profile                                         │');
-    console.log('│  20. Logout                                                  │');
+    console.log('│  === Mental Health & Trauma Support ===                      │');
+    console.log('│  19. Request Trauma Counseling                               │');
+    console.log('│  20. View My Counseling Sessions                             │');
+    console.log('│  21. Browse Support Groups                                   │');
+    console.log('│  22. Join Support Group                                      │');
+    console.log('│  23. View My Support Groups                                  │');
+    console.log('│  24. Start Anonymous Therapy Chat                            │');
+    console.log('│  25. View My Anonymous Chats                                 │');
+    console.log('│                                                              │');
+    console.log('│  26. View My Profile                                         │');
+    console.log('│  27. Logout                                                  │');
     console.log('│  0. Exit                                                     │');
     console.log('└──────────────────────────────────────────────────────────────┘');
 }
@@ -290,9 +299,17 @@ function printDoctorMenu() {
     console.log('│  10. Create Workshop/Webinar                                 │');
     console.log('│  11. View My Workshops                                       │');
     console.log('│                                                              │');
-    console.log('│  12. Update My Availability                                  │');
-    console.log('│  13. View My Profile                                         │');
-    console.log('│  14. Logout                                                  │');
+    console.log('│  === Mental Health & Trauma Support ===                      │');
+    console.log('│  12. View Counseling Requests                                │');
+    console.log('│  13. Manage My Counseling Sessions                           │');
+    console.log('│  14. View Waiting Anonymous Chats                            │');
+    console.log('│  15. My Active Anonymous Chats                               │');
+    console.log('│  16. Create Support Group                                    │');
+    console.log('│  17. Moderate My Support Groups                              │');
+    console.log('│                                                              │');
+    console.log('│  18. Update My Availability                                  │');
+    console.log('│  19. View My Profile                                         │');
+    console.log('│  20. Logout                                                  │');
     console.log('│  0. Exit                                                     │');
     console.log('└──────────────────────────────────────────────────────────────┘');
 }
@@ -1200,9 +1217,30 @@ async function patientMenuLoop() {
                 await viewMyWorkshopRegistrations();
                 break;
             case '19':
-                await viewMyProfile();
+                await requestTraumaCounseling();
                 break;
             case '20':
+                await viewMyCounselingSessions();
+                break;
+            case '21':
+                await browseSupportGroups();
+                break;
+            case '22':
+                await joinSupportGroup();
+                break;
+            case '23':
+                await viewMySupportGroups();
+                break;
+            case '24':
+                await startAnonymousChat();
+                break;
+            case '25':
+                await viewMyAnonymousChats();
+                break;
+            case '26':
+                await viewMyProfile();
+                break;
+            case '27':
                 currentUser = null;
                 currentUserType = null;
                 console.log('\n✅ Logged out successfully.\n');
@@ -1261,12 +1299,30 @@ async function doctorMenuLoop() {
                 await viewMyWorkshops();
                 break;
             case '12':
-                await updateMyAvailability();
+                await viewCounselingRequests();
                 break;
             case '13':
-                await viewMyProfile();
+                await viewCounselingRequests();
                 break;
             case '14':
+                await viewWaitingAnonymousChats();
+                break;
+            case '15':
+                await viewMyActiveAnonymousChats();
+                break;
+            case '16':
+                await createSupportGroup();
+                break;
+            case '17':
+                await moderateSupportGroups();
+                break;
+            case '18':
+                await updateMyAvailability();
+                break;
+            case '19':
+                await viewMyProfile();
+                break;
+            case '20':
                 currentUser = null;
                 currentUserType = null;
                 console.log('\n✅ Logged out successfully.\n');
@@ -2031,9 +2087,14 @@ function printVolunteerMenu() {
     console.log('│  13. Browse Upcoming Workshops                               │');
     console.log('│  14. Register for Workshop                                   │');
     console.log('│                                                              │');
-    console.log('│  15. Update My Availability                                  │');
-    console.log('│  16. View My Profile                                         │');
-    console.log('│  17. Logout                                                  │');
+    console.log('│  === Mental Health Support ===                               │');
+    console.log('│  15. Browse Support Groups                                   │');
+    console.log('│  16. Join Support Group                                      │');
+    console.log('│  17. Moderate Assigned Groups                                │');
+    console.log('│                                                              │');
+    console.log('│  18. Update My Availability                                  │');
+    console.log('│  19. View My Profile                                         │');
+    console.log('│  20. Logout                                                  │');
     console.log('│  0. Exit                                                     │');
     console.log('└──────────────────────────────────────────────────────────────┘');
 }
@@ -2335,12 +2396,21 @@ async function volunteerMenuLoop() {
                 await registerForWorkshop();
                 break;
             case '15':
-                await updateVolunteerAvailability();
+                await browseSupportGroups();
                 break;
             case '16':
-                await viewMyProfile();
+                await joinSupportGroup();
                 break;
             case '17':
+                await moderateSupportGroups();
+                break;
+            case '18':
+                await updateVolunteerAvailability();
+                break;
+            case '19':
+                await viewMyProfile();
+                break;
+            case '20':
                 currentUser = null;
                 currentUserType = null;
                 console.log('\n✅ Logged out successfully.\n');
@@ -3255,6 +3325,666 @@ async function viewMyWorkshops() {
         }
     } else {
         console.log('  No workshops found.');
+    }
+}
+
+// ============================================
+// FEATURE 5: MENTAL HEALTH & TRAUMA SUPPORT FUNCTIONS
+// ============================================
+
+// Request Trauma Counseling (for patients)
+async function requestTraumaCounseling() {
+    console.log('\n┌──────────────────────────────────────────────────────────────┐');
+    console.log('│              REQUEST TRAUMA COUNSELING                       │');
+    console.log('└──────────────────────────────────────────────────────────────┘\n');
+    
+    // Get available mental health counselors
+    const counselors = await apiRequest('GET', '/mental-health/counselors');
+    
+    if (!counselors.success || counselors.data.length === 0) {
+        console.log('  No mental health counselors available at the moment.');
+        console.log('  Please try again later or contact emergency services if urgent.');
+        return;
+    }
+    
+    console.log('  Available Mental Health Counselors:\n');
+    counselors.data.forEach((c, i) => {
+        console.log(`  ${i + 1}. Dr. ${c.name}`);
+        console.log(`     Experience: ${c.years_of_experience} years | Languages: ${c.languages}`);
+        if (c.bio) console.log(`     ${c.bio}`);
+        console.log('');
+    });
+    
+    const counselorChoice = await prompt('Select counselor (number): ');
+    const counselorIndex = parseInt(counselorChoice) - 1;
+    
+    if (isNaN(counselorIndex) || counselorIndex < 0 || counselorIndex >= counselors.data.length) {
+        console.log('\n❌ Invalid selection.');
+        return;
+    }
+    
+    const counselor = counselors.data[counselorIndex];
+    
+    console.log('\n  Session Type:');
+    console.log('    1. PTSD (Post-Traumatic Stress)');
+    console.log('    2. Grief Counseling');
+    console.log('    3. Anxiety');
+    console.log('    4. Depression');
+    console.log('    5. War Trauma');
+    console.log('    6. Child Trauma');
+    console.log('    7. Family Support');
+    console.log('    8. General Mental Health');
+    
+    const typeChoice = await prompt('\nSelect type (1-8): ');
+    const sessionTypes = {
+        '1': 'ptsd', '2': 'grief', '3': 'anxiety', '4': 'depression',
+        '5': 'war_trauma', '6': 'child_trauma', '7': 'family_support', '8': 'general'
+    };
+    const session_type = sessionTypes[typeChoice] || 'general';
+    
+    console.log('\n  Target Group:');
+    console.log('    1. Adult');
+    console.log('    2. Child');
+    console.log('    3. Family');
+    console.log('    4. War Survivor');
+    
+    const groupChoice = await prompt('\nSelect group (1-4): ');
+    const targetGroups = { '1': 'adult', '2': 'child', '3': 'family', '4': 'war_survivor' };
+    const target_group = targetGroups[groupChoice] || 'adult';
+    
+    console.log('\n  Session Mode:');
+    console.log('    1. Video Call');
+    console.log('    2. Audio Only');
+    console.log('    3. Chat/Message');
+    console.log('    4. In-Person (if available)');
+    
+    const modeChoice = await prompt('\nSelect mode (1-4): ');
+    const sessionModes = { '1': 'video', '2': 'audio', '3': 'chat', '4': 'in_person' };
+    const session_mode = sessionModes[modeChoice] || 'video';
+    
+    console.log('\n  Urgency Level:');
+    console.log('    1. Low - Can wait');
+    console.log('    2. Medium - Within a few days');
+    console.log('    3. High - As soon as possible');
+    console.log('    4. Crisis - Need immediate help');
+    
+    const urgencyChoice = await prompt('\nSelect urgency (1-4): ');
+    const urgencyLevels = { '1': 'low', '2': 'medium', '3': 'high', '4': 'crisis' };
+    const urgency_level = urgencyLevels[urgencyChoice] || 'medium';
+    
+    const notes = await prompt('\nBriefly describe what you would like help with:\n> ');
+    
+    const result = await apiRequest('POST', '/mental-health/counseling/request', {
+        patient_id: currentUser.id,
+        counselor_id: counselor.id,
+        session_type,
+        target_group,
+        session_mode,
+        urgency_level,
+        notes
+    });
+    
+    if (result.success) {
+        console.log('\n✅ Counseling session requested successfully!');
+        console.log(`   Session ID: ${result.data.session_id}`);
+        console.log(`   Counselor: Dr. ${counselor.name}`);
+        console.log('   The counselor will contact you to schedule the session.');
+        if (urgency_level === 'crisis') {
+            console.log('\n   ⚠️  CRISIS FLAG: Your request has been marked as urgent.');
+            console.log('   A counselor will reach out as soon as possible.');
+        }
+    } else {
+        console.log(`\n❌ Error: ${result.error}`);
+    }
+}
+
+// View My Counseling Sessions (for patients)
+async function viewMyCounselingSessions() {
+    console.log('\n🧠 My Counseling Sessions:\n');
+    
+    const result = await apiRequest('GET', `/mental-health/counseling/patient/${currentUser.id}`);
+    
+    if (result.success && result.data.length > 0) {
+        result.data.forEach((s, i) => {
+            const statusIcon = s.status === 'completed' ? '✅' :
+                              s.status === 'scheduled' ? '📅' :
+                              s.status === 'in_progress' ? '🔴' :
+                              s.status === 'cancelled' ? '❌' : '⏳';
+            const urgencyIcon = s.urgency_level === 'crisis' ? '🆘' :
+                               s.urgency_level === 'high' ? '🔴' :
+                               s.urgency_level === 'medium' ? '🟡' : '🟢';
+            
+            console.log(`  ${i + 1}. ${statusIcon} ${s.session_type.replace('_', ' ').toUpperCase()}`);
+            console.log(`     Counselor: Dr. ${s.counselor_name}`);
+            console.log(`     Status: ${s.status} | Urgency: ${urgencyIcon} ${s.urgency_level}`);
+            console.log(`     Mode: ${s.session_mode}`);
+            if (s.scheduled_at) {
+                console.log(`     Scheduled: ${new Date(s.scheduled_at).toLocaleString()}`);
+            }
+            if (s.counselor_notes) {
+                console.log(`     📝 Notes: ${s.counselor_notes}`);
+            }
+            if (s.follow_up_recommended) {
+                console.log(`     ⚠️  Follow-up recommended`);
+            }
+            console.log('');
+        });
+    } else {
+        console.log('  You have no counseling sessions yet.');
+        console.log('  Use "Request Trauma Counseling" to get started.');
+    }
+}
+
+// Browse Support Groups
+async function browseSupportGroups() {
+    console.log('\n┌──────────────────────────────────────────────────────────────┐');
+    console.log('│                    SUPPORT GROUPS                            │');
+    console.log('└──────────────────────────────────────────────────────────────┘\n');
+    
+    const lang = (currentUser.language_preference === 'arabic') ? 'ar' : 'en';
+    
+    console.log('  Filter by type:');
+    console.log('    1. All Groups');
+    console.log('    2. War Trauma Survivors');
+    console.log('    3. Chronic Illness');
+    console.log('    4. Grief & Loss');
+    console.log('    5. Disability Support');
+    console.log('    6. Caregiver Support');
+    console.log('    7. Mental Health');
+    console.log('    8. Parent Support');
+    
+    const choice = await prompt('\nEnter choice: ');
+    
+    const groupTypes = {
+        '2': 'war_trauma', '3': 'chronic_illness', '4': 'grief_loss',
+        '5': 'disability', '6': 'caregiver', '7': 'mental_health', '8': 'parent_support'
+    };
+    
+    let url = `/mental-health/support-groups?lang=${lang}`;
+    if (groupTypes[choice]) {
+        url += `&type=${groupTypes[choice]}`;
+    }
+    
+    const result = await apiRequest('GET', url);
+    
+    if (result.success && result.data.length > 0) {
+        console.log('\n👥 Support Groups:\n');
+        result.data.forEach((g, i) => {
+            const spotsLeft = g.max_members - g.current_members;
+            console.log(`  ${i + 1}. 💬 ${g.name}`);
+            console.log(`     Type: ${g.group_type.replace('_', ' ')} | For: ${g.target_audience}`);
+            console.log(`     Moderator: ${g.moderator_name}`);
+            console.log(`     📅 ${g.meeting_schedule}`);
+            console.log(`     👥 Members: ${g.current_members}/${g.max_members} (${spotsLeft} spots left)`);
+            console.log(`     🌐 Language: ${g.language}`);
+            if (g.meeting_link) console.log(`     🔗 ${g.meeting_link}`);
+            console.log('');
+        });
+    } else {
+        console.log('\n  No support groups found.');
+    }
+}
+
+// Join Support Group
+async function joinSupportGroup() {
+    console.log('\n┌──────────────────────────────────────────────────────────────┐');
+    console.log('│                  JOIN SUPPORT GROUP                          │');
+    console.log('└──────────────────────────────────────────────────────────────┘\n');
+    
+    const lang = (currentUser.language_preference === 'arabic') ? 'ar' : 'en';
+    const groups = await apiRequest('GET', `/mental-health/support-groups?lang=${lang}`);
+    
+    if (!groups.success || groups.data.length === 0) {
+        console.log('  No support groups available.');
+        return;
+    }
+    
+    console.log('  Available Groups:\n');
+    groups.data.forEach((g, i) => {
+        const spotsLeft = g.max_members - g.current_members;
+        console.log(`  ${i + 1}. ${g.name} (${spotsLeft} spots left)`);
+        console.log(`     Type: ${g.group_type.replace('_', ' ')}`);
+    });
+    
+    const choice = await prompt('\nSelect group to join (0 to cancel): ');
+    const index = parseInt(choice) - 1;
+    
+    if (choice === '0' || isNaN(index) || index < 0 || index >= groups.data.length) {
+        console.log('\n  Cancelled.');
+        return;
+    }
+    
+    const group = groups.data[index];
+    
+    const displayName = await prompt('Display name in group (or press Enter for your name): ');
+    const anonChoice = await prompt('Stay anonymous? (y/n): ');
+    const is_anonymous = anonChoice.toLowerCase() === 'y';
+    
+    const result = await apiRequest('POST', `/mental-health/support-groups/${group.id}/join`, {
+        member_type: currentUserType,
+        member_id: currentUser.id,
+        display_name: displayName || currentUser.name,
+        is_anonymous
+    });
+    
+    if (result.success) {
+        console.log('\n✅ ' + result.data.message);
+        console.log(`   Group: ${group.name}`);
+        if (group.meeting_schedule) console.log(`   Meetings: ${group.meeting_schedule}`);
+        if (group.meeting_link) console.log(`   Join link: ${group.meeting_link}`);
+    } else {
+        console.log(`\n❌ ${result.error}`);
+    }
+}
+
+// View My Support Groups
+async function viewMySupportGroups() {
+    console.log('\n👥 My Support Groups:\n');
+    
+    const result = await apiRequest('GET', `/mental-health/support-groups/member/${currentUserType}/${currentUser.id}`);
+    
+    if (result.success && result.data.length > 0) {
+        result.data.forEach((m, i) => {
+            console.log(`  ${i + 1}. 💬 ${m.name}`);
+            console.log(`     Type: ${m.group_type.replace('_', ' ')}`);
+            console.log(`     Role: ${m.role}`);
+            if (m.meeting_schedule) console.log(`     📅 ${m.meeting_schedule}`);
+            if (m.meeting_link) console.log(`     🔗 ${m.meeting_link}`);
+            console.log('');
+        });
+    } else {
+        console.log('  You have not joined any support groups yet.');
+        console.log('  Use "Browse Support Groups" to find groups to join.');
+    }
+}
+
+// Start Anonymous Therapy Chat
+async function startAnonymousChat() {
+    console.log('\n┌──────────────────────────────────────────────────────────────┐');
+    console.log('│              ANONYMOUS THERAPY CHAT                          │');
+    console.log('└──────────────────────────────────────────────────────────────┘\n');
+    
+    console.log('  🔒 Your identity is protected. You will receive an anonymous ID.');
+    console.log('  💬 A counselor will join your chat as soon as one is available.\n');
+    
+    console.log('  What concern brings you here today?');
+    console.log('    1. Anxiety');
+    console.log('    2. Depression');
+    console.log('    3. Trauma');
+    console.log('    4. Grief');
+    console.log('    5. Stress');
+    console.log('    6. Relationship Issues');
+    console.log('    7. Addiction');
+    console.log('    8. Other');
+    
+    const concernChoice = await prompt('\nSelect concern (1-8): ');
+    const concernTypes = {
+        '1': 'anxiety', '2': 'depression', '3': 'trauma', '4': 'grief',
+        '5': 'stress', '6': 'relationship', '7': 'addiction', '8': 'other'
+    };
+    const concern_type = concernTypes[concernChoice] || 'other';
+    
+    console.log('\n  How urgent is your need?');
+    console.log('    1. Normal - I can wait');
+    console.log('    2. Urgent - I need help soon');
+    console.log('    3. Crisis - I need immediate help');
+    
+    const priorityChoice = await prompt('\nSelect priority (1-3): ');
+    const priorities = { '1': 'normal', '2': 'urgent', '3': 'crisis' };
+    const priority = priorities[priorityChoice] || 'normal';
+    
+    const initial_message = await prompt('\nShare what\'s on your mind (optional):\n> ');
+    
+    const result = await apiRequest('POST', '/mental-health/anonymous-chat/start', {
+        patient_id: currentUser.id,
+        concern_type,
+        priority,
+        initial_message: initial_message || null
+    });
+    
+    if (result.success) {
+        console.log('\n✅ Anonymous chat started!');
+        console.log(`   Your Anonymous ID: ${result.data.anonymous_id}`);
+        console.log(`   Chat ID: ${result.data.chat_id}`);
+        console.log('\n   A counselor will join your chat soon.');
+        console.log('   You can check "View My Anonymous Chats" for responses.');
+        
+        if (priority === 'crisis') {
+            console.log('\n   ⚠️  CRISIS FLAG: Your chat has been prioritized.');
+            console.log('   If you\'re in immediate danger, please call emergency services.');
+        }
+    } else {
+        console.log(`\n❌ Error: ${result.error}`);
+    }
+}
+
+// View My Anonymous Chats
+async function viewMyAnonymousChats() {
+    console.log('\n💬 My Anonymous Chats:\n');
+    
+    const result = await apiRequest('GET', `/mental-health/anonymous-chat/patient/${currentUser.id}`);
+    
+    if (result.success && result.data.length > 0) {
+        for (const chat of result.data) {
+            const statusIcon = chat.status === 'active' ? '🟢 Active' :
+                              chat.status === 'waiting' ? '⏳ Waiting for counselor' :
+                              chat.status === 'closed' ? '✅ Closed' : '🔴 Escalated';
+            
+            console.log(`  Chat ID: ${chat.id} | ${chat.anonymous_id}`);
+            console.log(`  Status: ${statusIcon}`);
+            console.log(`  Concern: ${chat.concern_type}`);
+            if (chat.counselor_name) console.log(`  Counselor: ${chat.counselor_name}`);
+            
+            // Show recent messages
+            if (chat.status === 'active' || chat.status === 'waiting') {
+                const messages = await apiRequest('GET', `/mental-health/anonymous-chat/${chat.id}/messages`);
+                if (messages.success && messages.data.length > 0) {
+                    console.log('  Recent messages:');
+                    messages.data.slice(-3).forEach(m => {
+                        const sender = m.sender_type === 'patient' ? 'You' : 'Counselor';
+                        console.log(`    ${sender}: ${m.content.substring(0, 50)}...`);
+                    });
+                    
+                    // Option to send message
+                    const sendMsg = await prompt('\n  Send a message? (y/n): ');
+                    if (sendMsg.toLowerCase() === 'y') {
+                        const content = await prompt('  Your message: ');
+                        await apiRequest('POST', `/mental-health/anonymous-chat/${chat.id}/messages`, {
+                            sender_type: 'patient',
+                            content
+                        });
+                        console.log('  ✅ Message sent!');
+                    }
+                }
+            }
+            console.log('');
+        }
+    } else {
+        console.log('  You have no anonymous chats.');
+        console.log('  Use "Start Anonymous Therapy Chat" to begin.');
+    }
+}
+
+// ============================================
+// DOCTOR MENTAL HEALTH FUNCTIONS
+// ============================================
+
+// View Counseling Requests (for doctors)
+async function viewCounselingRequests() {
+    console.log('\n🧠 Counseling Requests:\n');
+    
+    const result = await apiRequest('GET', `/mental-health/counseling/counselor/${currentUser.id}`);
+    
+    if (result.success && result.data.length > 0) {
+        const pending = result.data.filter(s => s.status === 'requested' || s.status === 'scheduled');
+        
+        if (pending.length > 0) {
+            console.log('  === Pending/Scheduled Sessions ===\n');
+            pending.forEach((s, i) => {
+                const urgencyIcon = s.urgency_level === 'crisis' ? '🆘 CRISIS' :
+                                   s.urgency_level === 'high' ? '🔴 HIGH' :
+                                   s.urgency_level === 'medium' ? '🟡 MEDIUM' : '🟢 LOW';
+                
+                console.log(`  ${i + 1}. ${urgencyIcon} - ${s.session_type.replace('_', ' ')}`);
+                console.log(`     Patient: ${s.patient_name} (${s.target_group})`);
+                console.log(`     Mode: ${s.session_mode} | Status: ${s.status}`);
+                if (s.notes) console.log(`     Patient notes: ${s.notes}`);
+                if (s.scheduled_at) console.log(`     Scheduled: ${new Date(s.scheduled_at).toLocaleString()}`);
+                console.log('');
+            });
+            
+            const action = await prompt('Enter session number to manage (0 to skip): ');
+            const index = parseInt(action) - 1;
+            
+            if (action !== '0' && index >= 0 && index < pending.length) {
+                await manageCounselingSession(pending[index]);
+            }
+        } else {
+            console.log('  No pending counseling requests.');
+        }
+    } else {
+        console.log('  No counseling sessions found.');
+    }
+}
+
+// Manage Counseling Session
+async function manageCounselingSession(session) {
+    console.log(`\n  Managing session for ${session.patient_name}`);
+    console.log('  Actions:');
+    console.log('    1. Schedule session');
+    console.log('    2. Mark as in progress');
+    console.log('    3. Complete session (add notes)');
+    console.log('    4. Cancel session');
+    
+    const action = await prompt('\nSelect action: ');
+    
+    let updates = {};
+    
+    switch (action) {
+        case '1':
+            const dateTime = await prompt('Schedule date/time (YYYY-MM-DD HH:MM): ');
+            updates = { status: 'scheduled', scheduled_at: dateTime };
+            break;
+        case '2':
+            updates = { status: 'in_progress' };
+            break;
+        case '3':
+            const notes = await prompt('Session notes: ');
+            const followUp = await prompt('Recommend follow-up? (y/n): ');
+            updates = { 
+                status: 'completed', 
+                counselor_notes: notes,
+                follow_up_recommended: followUp.toLowerCase() === 'y'
+            };
+            break;
+        case '4':
+            updates = { status: 'cancelled' };
+            break;
+        default:
+            console.log('Invalid action.');
+            return;
+    }
+    
+    const result = await apiRequest('PATCH', `/mental-health/counseling/${session.id}`, updates);
+    
+    if (result.success) {
+        console.log('\n✅ Session updated successfully!');
+    } else {
+        console.log(`\n❌ Error: ${result.error}`);
+    }
+}
+
+// View Waiting Anonymous Chats (for doctors)
+async function viewWaitingAnonymousChats() {
+    console.log('\n💬 Waiting Anonymous Chats:\n');
+    
+    const result = await apiRequest('GET', '/mental-health/anonymous-chat/waiting');
+    
+    if (result.success && result.data.length > 0) {
+        result.data.forEach((c, i) => {
+            const priorityIcon = c.priority === 'crisis' ? '🆘 CRISIS' :
+                                c.priority === 'urgent' ? '🔴 URGENT' : '🟢 NORMAL';
+            
+            console.log(`  ${i + 1}. ${priorityIcon} | ${c.anonymous_id}`);
+            console.log(`     Concern: ${c.concern_type}`);
+            console.log(`     Waiting since: ${new Date(c.created_at).toLocaleString()}`);
+            console.log('');
+        });
+        
+        const accept = await prompt('Enter chat number to accept (0 to skip): ');
+        const index = parseInt(accept) - 1;
+        
+        if (accept !== '0' && index >= 0 && index < result.data.length) {
+            const chat = result.data[index];
+            const acceptResult = await apiRequest('POST', `/mental-health/anonymous-chat/${chat.id}/accept`, {
+                counselor_id: currentUser.id
+            });
+            
+            if (acceptResult.success) {
+                console.log('\n✅ Chat accepted! You can now communicate with the patient.');
+                
+                // Show messages and allow response
+                const messages = await apiRequest('GET', `/mental-health/anonymous-chat/${chat.id}/messages`);
+                if (messages.success && messages.data.length > 0) {
+                    console.log('\n  Chat history:');
+                    messages.data.forEach(m => {
+                        const sender = m.sender_type === 'patient' ? 'Patient' : 'You';
+                        console.log(`    ${sender}: ${m.content}`);
+                    });
+                }
+                
+                const response = await prompt('\nYour response: ');
+                if (response) {
+                    await apiRequest('POST', `/mental-health/anonymous-chat/${chat.id}/messages`, {
+                        sender_type: 'counselor',
+                        content: response
+                    });
+                    console.log('✅ Message sent!');
+                }
+            }
+        }
+    } else {
+        console.log('  No chats waiting for counselors.');
+    }
+}
+
+// View Doctor's Active Anonymous Chats
+async function viewMyActiveAnonymousChats() {
+    console.log('\n💬 My Active Anonymous Chats:\n');
+    
+    const result = await apiRequest('GET', `/mental-health/anonymous-chat/counselor/${currentUser.id}`);
+    
+    if (result.success && result.data.length > 0) {
+        for (const chat of result.data) {
+            console.log(`  Chat: ${chat.anonymous_id}`);
+            console.log(`  Concern: ${chat.concern_type} | Priority: ${chat.priority}`);
+            console.log(`  Started: ${new Date(chat.started_at).toLocaleString()}`);
+            
+            const messages = await apiRequest('GET', `/mental-health/anonymous-chat/${chat.id}/messages`);
+            if (messages.success && messages.data.length > 0) {
+                console.log('  Recent:');
+                messages.data.slice(-3).forEach(m => {
+                    const sender = m.sender_type === 'patient' ? 'Patient' : 'You';
+                    console.log(`    ${sender}: ${m.content.substring(0, 60)}...`);
+                });
+            }
+            
+            const action = await prompt('\n  (r)eply, (c)lose, (e)scalate, (s)kip: ');
+            
+            if (action === 'r') {
+                const response = await prompt('  Your message: ');
+                await apiRequest('POST', `/mental-health/anonymous-chat/${chat.id}/messages`, {
+                    sender_type: 'counselor',
+                    content: response
+                });
+                console.log('  ✅ Sent!');
+            } else if (action === 'c') {
+                await apiRequest('POST', `/mental-health/anonymous-chat/${chat.id}/close`, {});
+                console.log('  ✅ Chat closed.');
+            } else if (action === 'e') {
+                const reason = await prompt('  Escalation reason: ');
+                await apiRequest('POST', `/mental-health/anonymous-chat/${chat.id}/escalate`, { reason });
+                console.log('  ⚠️  Chat escalated to crisis level.');
+            }
+            console.log('');
+        }
+    } else {
+        console.log('  No active chats.');
+    }
+}
+
+// Create Support Group (for doctors)
+async function createSupportGroup() {
+    console.log('\n┌──────────────────────────────────────────────────────────────┐');
+    console.log('│                 CREATE SUPPORT GROUP                         │');
+    console.log('└──────────────────────────────────────────────────────────────┘\n');
+    
+    const name = await prompt('Group Name (English): ');
+    const name_ar = await prompt('Group Name (Arabic): ');
+    
+    console.log('\nDescription (English):');
+    const description = await prompt('> ');
+    
+    console.log('\nDescription (Arabic):');
+    const description_ar = await prompt('> ');
+    
+    console.log('\nGroup Type:');
+    console.log('  1. Chronic Illness');
+    console.log('  2. Disability');
+    console.log('  3. Grief & Loss');
+    console.log('  4. War Trauma');
+    console.log('  5. Caregiver Support');
+    console.log('  6. Mental Health');
+    console.log('  7. Parent Support');
+    console.log('  8. General');
+    
+    const typeChoice = await prompt('Select type (1-8): ');
+    const groupTypes = {
+        '1': 'chronic_illness', '2': 'disability', '3': 'grief_loss', '4': 'war_trauma',
+        '5': 'caregiver', '6': 'mental_health', '7': 'parent_support', '8': 'general'
+    };
+    const group_type = groupTypes[typeChoice] || 'general';
+    
+    console.log('\nTarget Audience:');
+    console.log('  1. Patients');
+    console.log('  2. Families');
+    console.log('  3. Caregivers');
+    console.log('  4. All');
+    
+    const audChoice = await prompt('Select audience (1-4): ');
+    const audiences = { '1': 'patients', '2': 'families', '3': 'caregivers', '4': 'all' };
+    const target_audience = audiences[audChoice] || 'all';
+    
+    const meeting_schedule = await prompt('Meeting Schedule (e.g., "Sundays 7 PM"): ');
+    const meeting_link = await prompt('Meeting Link: ');
+    const max_members = await prompt('Max Members (default 50): ');
+    
+    const result = await apiRequest('POST', '/mental-health/support-groups', {
+        name,
+        name_ar,
+        description,
+        description_ar,
+        group_type,
+        target_audience,
+        moderator_type: 'doctor',
+        moderator_id: currentUser.id,
+        moderator_name: `Dr. ${currentUser.name}`,
+        max_members: parseInt(max_members) || 50,
+        meeting_schedule,
+        meeting_link,
+        language: 'both'
+    });
+    
+    if (result.success) {
+        console.log('\n✅ Support group created successfully!');
+        console.log(`   Group ID: ${result.data.group_id}`);
+        console.log('   Patients can now join this group.');
+    } else {
+        console.log(`\n❌ Error: ${result.error}`);
+    }
+}
+
+// Moderate My Support Groups (for doctors)
+async function moderateSupportGroups() {
+    console.log('\n👥 My Support Groups (Moderator):\n');
+    
+    const result = await apiRequest('GET', '/mental-health/support-groups');
+    
+    if (result.success && result.data.length > 0) {
+        const myGroups = result.data.filter(g => g.moderator_id === currentUser.id);
+        
+        if (myGroups.length > 0) {
+            myGroups.forEach((g, i) => {
+                console.log(`  ${i + 1}. ${g.name}`);
+                console.log(`     Type: ${g.group_type} | Members: ${g.current_members}/${g.max_members}`);
+                console.log(`     Schedule: ${g.meeting_schedule}`);
+                console.log('');
+            });
+        } else {
+            console.log('  You are not moderating any support groups.');
+        }
+    } else {
+        console.log('  No support groups found.');
     }
 }
 
