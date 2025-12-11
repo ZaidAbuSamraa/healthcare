@@ -23,11 +23,23 @@ const healthGuidesRouter = require('./routes/health-guides');
 const alertsRouter = require('./routes/alerts');
 const workshopsRouter = require('./routes/workshops');
 
+// Feature 5: Mental Health & Trauma Support
+const mentalHealthRouter = require('./routes/mental-health');
+
+// Feature 6: Partnerships with NGOs & Medical Missions
+const ngoPartnershipsRouter = require('./routes/ngo-partnerships');
+
+// Authentication
+const authRouter = require('./routes/auth');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(express.json());
+
+// Authentication Routes
+app.use('/api/auth', authRouter);
 
 // Feature 1 Routes: Remote Medical Consultations
 app.use('/api/patients', patientsRouter);
@@ -51,6 +63,12 @@ app.use('/api/guides', healthGuidesRouter);
 app.use('/api/alerts', alertsRouter);
 app.use('/api/workshops', workshopsRouter);
 
+// Feature 5 Routes: Mental Health & Trauma Support
+app.use('/api/mental-health', mentalHealthRouter);
+
+// Feature 6 Routes: Partnerships with NGOs & Medical Missions
+app.use('/api/partnerships', ngoPartnershipsRouter);
+
 // Health check
 app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', message: 'HealthPal API is running' });
@@ -66,7 +84,9 @@ app.get('/api', (req, res) => {
             feature1: 'Remote Medical Consultations',
             feature2: 'Medical Sponsorship System',
             feature3: 'Medication & Equipment Coordination',
-            feature4: 'Health Education & Public Health Alerts'
+            feature4: 'Health Education & Public Health Alerts',
+            feature5: 'Mental Health & Trauma Support',
+            feature6: 'Partnerships with NGOs & Medical Missions'
         },
         endpoints: {
             // Feature 1: Remote Medical Consultations
@@ -247,7 +267,57 @@ app.get('/api', (req, res) => {
             alert_types: ['disease_outbreak', 'air_quality', 'water_safety', 'urgent_medical', 'vaccination', 'emergency', 'general'],
             alert_severity: ['info', 'warning', 'critical', 'emergency'],
             workshop_types: ['webinar', 'in_person', 'hybrid'],
-            workshop_status: ['upcoming', 'ongoing', 'completed', 'cancelled']
+            workshop_status: ['upcoming', 'ongoing', 'completed', 'cancelled'],
+            // Feature 6 enums
+            ngo_types: ['medical_ngo', 'humanitarian', 'relief', 'development', 'international', 'local'],
+            mission_types: ['mobile_clinic', 'surgery_camp', 'vaccination_drive', 'specialist_visit', 'aid_distribution', 'training', 'general_outreach'],
+            mission_status: ['planned', 'confirmed', 'ongoing', 'completed', 'cancelled', 'postponed'],
+            surgery_types: ['general', 'orthopedic', 'cardiac', 'ophthalmology', 'pediatric', 'reconstructive', 'emergency', 'dental'],
+            surgical_camp_status: ['announced', 'screening', 'ongoing', 'completed', 'cancelled'],
+            screening_status: ['pending', 'scheduled', 'screened', 'approved', 'rejected'],
+            appointment_status: ['requested', 'confirmed', 'checked_in', 'completed', 'cancelled', 'no_show']
+        },
+        feature6_endpoints: {
+            ngos: {
+                'GET /api/partnerships/ngos': 'List all verified NGOs',
+                'GET /api/partnerships/ngos/:ngoId': 'Get NGO by ID',
+                'POST /api/partnerships/ngos': 'Register new NGO',
+                'PATCH /api/partnerships/ngos/:ngoId/verify': 'Verify NGO (admin)',
+                'GET /api/partnerships/ngos/:ngoId/missions': 'Get NGO missions'
+            },
+            medical_missions: {
+                'GET /api/partnerships/missions': 'List upcoming missions',
+                'GET /api/partnerships/missions/:missionId': 'Get mission details',
+                'POST /api/partnerships/missions': 'Create new mission',
+                'PATCH /api/partnerships/missions/:missionId/status': 'Update mission status',
+                'POST /api/partnerships/missions/:missionId/appointments': 'Book appointment',
+                'GET /api/partnerships/missions/:missionId/appointments': 'Get mission appointments'
+            },
+            volunteer_doctors: {
+                'GET /api/partnerships/volunteer-doctors': 'List volunteer doctors',
+                'GET /api/partnerships/volunteer-doctors/:doctorId': 'Get volunteer doctor details',
+                'POST /api/partnerships/volunteer-doctors': 'Register volunteer doctor',
+                'PATCH /api/partnerships/volunteer-doctors/:doctorId/availability': 'Update availability'
+            },
+            appointments: {
+                'GET /api/partnerships/appointments/patient/:patientId': 'Get patient appointments',
+                'PATCH /api/partnerships/appointments/:appointmentId': 'Update appointment',
+                'PATCH /api/partnerships/appointments/:appointmentId/feedback': 'Submit feedback'
+            },
+            surgical_camps: {
+                'GET /api/partnerships/surgical-camps': 'List surgical camps',
+                'GET /api/partnerships/surgical-camps/:campId': 'Get camp details',
+                'POST /api/partnerships/surgical-camps': 'Create surgical camp',
+                'POST /api/partnerships/surgical-camps/:campId/register': 'Register for surgery',
+                'GET /api/partnerships/surgical-camps/:campId/registrations': 'Get registrations',
+                'PATCH /api/partnerships/surgical-camps/registrations/:registrationId': 'Update registration',
+                'GET /api/partnerships/surgical-camps/patient/:patientId/registrations': 'Get patient registrations'
+            },
+            notifications: {
+                'GET /api/partnerships/notifications': 'Get active notifications',
+                'POST /api/partnerships/notifications': 'Create notification',
+                'PATCH /api/partnerships/notifications/:notificationId/deactivate': 'Deactivate notification'
+            }
         }
     });
 });

@@ -1,132 +1,111 @@
 const express = require('express');
 const router = express.Router();
-const pool = require('../config/database');
+const { doctorService } = require('../services');
+const { authService } = require('../services');
+const { authenticate, authorize } = require('../middleware/auth');
 
-// Get all doctors
+// Get all doctors (public)
 router.get('/', async (req, res) => {
     try {
-        const [rows] = await pool.query('SELECT * FROM doctors ORDER BY name');
-        res.json({ success: true, data: rows });
+        const doctors = await doctorService.getAllDoctors();
+        res.json({ success: true, data: doctors });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }
 });
 
-// Get available doctors
+// Get available doctors (public)
 router.get('/available', async (req, res) => {
     try {
-        const [rows] = await pool.query('SELECT * FROM doctors WHERE availability_status = "available" ORDER BY name');
-        res.json({ success: true, data: rows });
+        const doctors = await doctorService.getAvailableDoctors();
+        res.json({ success: true, data: doctors });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }
 });
 
-// Get doctors by specialty
+// Get doctors by specialty (public)
 router.get('/specialty/:specialty', async (req, res) => {
     try {
-        const [rows] = await pool.query(
-            'SELECT * FROM doctors WHERE specialty = ? AND availability_status = "available" ORDER BY name',
-            [req.params.specialty]
-        );
-        res.json({ success: true, data: rows });
+        const doctors = await doctorService.getDoctorsBySpecialty(req.params.specialty);
+        res.json({ success: true, data: doctors });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }
 });
 
-// Login doctor (must be before /:id route)
+// Login doctor - returns JWT tokens
 router.post('/login', async (req, res) => {
     try {
         const { username, password } = req.body;
-        const [rows] = await pool.query(
-            'SELECT * FROM doctors WHERE username = ? AND password = ?',
-            [username, password]
-        );
-        if (rows.length === 0) {
-            return res.status(401).json({ success: false, error: 'Invalid username or password' });
-        }
-        res.json({ success: true, data: rows[0] });
+        const result = await authService.login(username, password, 'doctor');
+        res.json({ success: true, data: result });
     } catch (error) {
-        res.status(500).json({ success: false, error: error.message });
+        res.status(401).json({ success: false, error: error.message });
     }
 });
 
-// Create new doctor (register)
+// Register new doctor
 router.post('/', async (req, res) => {
     try {
-        const { username, password, name, email, phone, specialty, languages, is_international, availability_status, bio, years_of_experience } = req.body;
-        const [result] = await pool.query(
-            'INSERT INTO doctors (username, password, name, email, phone, specialty, languages, is_international, availability_status, bio, years_of_experience) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-            [username, password, name, email, phone, specialty, languages, is_international || false, availability_status || 'offline', bio, years_of_experience]
-        );
-        res.status(201).json({ success: true, data: { id: result.insertId, username, name, email } });
+        const doctor = await doctorService.createDoctor(req.body);
+        res.status(201).json({ success: true, data: doctor });
     } catch (error) {
-        if (error.code === 'ER_DUP_ENTRY') {
-            res.status(400).json({ success: false, error: 'Username or email already exists' });
-        } else {
-            res.status(500).json({ success: false, error: error.message });
-        }
+        const status = error.message.includes('exists') ? 400 : 500;
+        res.status(status).json({ success: false, error: error.message });
     }
 });
 
-// Get doctor by ID (must be after /login route)
+// Get doctor by ID (public)
 router.get('/:id', async (req, res) => {
     try {
-        const [rows] = await pool.query('SELECT * FROM doctors WHERE id = ?', [req.params.id]);
-        if (rows.length === 0) {
-            return res.status(404).json({ success: false, error: 'Doctor not found' });
-        }
-        res.json({ success: true, data: rows[0] });
+        const doctor = await doctorService.getDoctorById(req.params.id);
+        res.json({ success: true, data: doctor });
     } catch (error) {
-        res.status(500).json({ success: false, error: error.message });
+        const status = error.message.includes('not found') ? 404 : 500;
+        res.status(status).json({ success: false, error: error.message });
     }
 });
 
-// Update doctor availability
-router.patch('/:id/availability', async (req, res) => {
+// Update doctor availability (protected - doctor only)
+router.patch('/:id/availability', authenticate, async (req, res) => {
     try {
-        const { availability_status } = req.body;
-        const [result] = await pool.query(
-            'UPDATE doctors SET availability_status = ? WHERE id = ?',
-            [availability_status, req.params.id]
+        const result = await doctorService.updateAvailability(
+            parseInt(req.params.id), 
+            req.body.availability_status,
+            req.user
         );
-        if (result.affectedRows === 0) {
-            return res.status(404).json({ success: false, error: 'Doctor not found' });
-        }
-        res.json({ success: true, message: 'Availability updated successfully' });
+        res.json({ success: true, data: result });
     } catch (error) {
-        res.status(500).json({ success: false, error: error.message });
+        const status = error.message.includes('permission') ? 403 : 500;
+        res.status(status).json({ success: false, error: error.message });
     }
 });
 
-// Update doctor
-router.put('/:id', async (req, res) => {
+// Update doctor (protected - owner or admin)
+router.put('/:id', authenticate, async (req, res) => {
     try {
-        const { name, email, phone, specialty, languages, is_international, availability_status, bio, years_of_experience } = req.body;
-        const [result] = await pool.query(
-            'UPDATE doctors SET name = ?, email = ?, phone = ?, specialty = ?, languages = ?, is_international = ?, availability_status = ?, bio = ?, years_of_experience = ? WHERE id = ?',
-            [name, email, phone, specialty, languages, is_international, availability_status, bio, years_of_experience, req.params.id]
+        const doctor = await doctorService.updateDoctor(
+            parseInt(req.params.id), 
+            req.body, 
+            req.user
         );
-        if (result.affectedRows === 0) {
-            return res.status(404).json({ success: false, error: 'Doctor not found' });
-        }
-        res.json({ success: true, message: 'Doctor updated successfully' });
+        res.json({ success: true, data: doctor });
     } catch (error) {
-        res.status(500).json({ success: false, error: error.message });
+        const status = error.message.includes('not found') ? 404 : 
+                       error.message.includes('only update') ? 403 : 500;
+        res.status(status).json({ success: false, error: error.message });
     }
 });
 
-// Delete doctor
-router.delete('/:id', async (req, res) => {
+// Delete doctor (protected - admin only)
+router.delete('/:id', authenticate, authorize('admin'), async (req, res) => {
     try {
-        const [result] = await pool.query('DELETE FROM doctors WHERE id = ?', [req.params.id]);
-        if (result.affectedRows === 0) {
-            return res.status(404).json({ success: false, error: 'Doctor not found' });
-        }
-        res.json({ success: true, message: 'Doctor deleted successfully' });
+        const result = await doctorService.deleteDoctor(req.params.id);
+        res.json({ success: true, data: result });
     } catch (error) {
-        res.status(500).json({ success: false, error: error.message });
+        const status = error.message.includes('not found') ? 404 : 500;
+        res.status(status).json({ success: false, error: error.message });
     }
 });
 

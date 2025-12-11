@@ -421,6 +421,339 @@ async function setupDatabase() {
     `);
     console.log('Workshop registrations table created');
 
+    // ============================================
+    // FEATURE 5: MENTAL HEALTH & TRAUMA SUPPORT
+    // ============================================
+
+    // Create trauma_counseling_sessions table
+    await connection.query(`
+        CREATE TABLE IF NOT EXISTS trauma_counseling_sessions (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            patient_id INT NOT NULL,
+            counselor_id INT NOT NULL,
+            session_type ENUM('ptsd', 'grief', 'anxiety', 'depression', 'war_trauma', 'child_trauma', 'family_support', 'general') NOT NULL,
+            target_group ENUM('adult', 'child', 'family', 'war_survivor') DEFAULT 'adult',
+            status ENUM('requested', 'scheduled', 'in_progress', 'completed', 'cancelled') DEFAULT 'requested',
+            scheduled_at DATETIME,
+            duration_minutes INT DEFAULT 60,
+            session_mode ENUM('video', 'audio', 'chat', 'in_person') DEFAULT 'video',
+            notes TEXT,
+            counselor_notes TEXT,
+            follow_up_recommended BOOLEAN DEFAULT FALSE,
+            urgency_level ENUM('low', 'medium', 'high', 'crisis') DEFAULT 'medium',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE CASCADE,
+            FOREIGN KEY (counselor_id) REFERENCES doctors(id) ON DELETE CASCADE
+        )
+    `);
+    console.log('Trauma counseling sessions table created');
+
+    // Create support_groups table
+    await connection.query(`
+        CREATE TABLE IF NOT EXISTS support_groups (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            name VARCHAR(255) NOT NULL,
+            name_ar VARCHAR(255) NOT NULL,
+            description TEXT NOT NULL,
+            description_ar TEXT NOT NULL,
+            group_type ENUM('chronic_illness', 'disability', 'grief_loss', 'war_trauma', 'caregiver', 'mental_health', 'parent_support', 'general') NOT NULL,
+            target_audience ENUM('patients', 'families', 'caregivers', 'all') DEFAULT 'all',
+            moderator_type ENUM('doctor', 'volunteer', 'peer') NOT NULL,
+            moderator_id INT,
+            moderator_name VARCHAR(255),
+            max_members INT DEFAULT 50,
+            current_members INT DEFAULT 0,
+            is_active BOOLEAN DEFAULT TRUE,
+            meeting_schedule VARCHAR(255),
+            meeting_link VARCHAR(255),
+            language ENUM('arabic', 'english', 'both') DEFAULT 'arabic',
+            is_private BOOLEAN DEFAULT FALSE,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        )
+    `);
+    console.log('Support groups table created');
+
+    // Create support_group_members table
+    await connection.query(`
+        CREATE TABLE IF NOT EXISTS support_group_members (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            group_id INT NOT NULL,
+            member_type ENUM('patient', 'family_member', 'caregiver') NOT NULL,
+            member_id INT,
+            display_name VARCHAR(255) NOT NULL,
+            is_anonymous BOOLEAN DEFAULT FALSE,
+            status ENUM('pending', 'approved', 'removed', 'left') DEFAULT 'pending',
+            role ENUM('member', 'moderator', 'admin') DEFAULT 'member',
+            joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (group_id) REFERENCES support_groups(id) ON DELETE CASCADE
+        )
+    `);
+    console.log('Support group members table created');
+
+    // Create support_group_messages table
+    await connection.query(`
+        CREATE TABLE IF NOT EXISTS support_group_messages (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            group_id INT NOT NULL,
+            member_id INT NOT NULL,
+            content TEXT NOT NULL,
+            is_pinned BOOLEAN DEFAULT FALSE,
+            is_moderated BOOLEAN DEFAULT FALSE,
+            moderated_by INT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (group_id) REFERENCES support_groups(id) ON DELETE CASCADE,
+            FOREIGN KEY (member_id) REFERENCES support_group_members(id) ON DELETE CASCADE
+        )
+    `);
+    console.log('Support group messages table created');
+
+    // Create anonymous_therapy_chats table
+    await connection.query(`
+        CREATE TABLE IF NOT EXISTS anonymous_therapy_chats (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            anonymous_id VARCHAR(100) NOT NULL,
+            patient_id INT,
+            counselor_id INT,
+            concern_type ENUM('anxiety', 'depression', 'trauma', 'grief', 'stress', 'relationship', 'addiction', 'other') NOT NULL,
+            status ENUM('waiting', 'active', 'closed', 'escalated') DEFAULT 'waiting',
+            priority ENUM('normal', 'urgent', 'crisis') DEFAULT 'normal',
+            started_at TIMESTAMP NULL,
+            ended_at TIMESTAMP NULL,
+            counselor_rating INT,
+            feedback TEXT,
+            is_escalated BOOLEAN DEFAULT FALSE,
+            escalation_reason TEXT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE SET NULL,
+            FOREIGN KEY (counselor_id) REFERENCES doctors(id) ON DELETE SET NULL
+        )
+    `);
+    console.log('Anonymous therapy chats table created');
+
+    // Create anonymous_chat_messages table
+    await connection.query(`
+        CREATE TABLE IF NOT EXISTS anonymous_chat_messages (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            chat_id INT NOT NULL,
+            sender_type ENUM('patient', 'counselor') NOT NULL,
+            content TEXT NOT NULL,
+            is_read BOOLEAN DEFAULT FALSE,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (chat_id) REFERENCES anonymous_therapy_chats(id) ON DELETE CASCADE
+        )
+    `);
+    console.log('Anonymous chat messages table created');
+
+    // ============================================
+    // FEATURE 6: PARTNERSHIPS WITH NGOs & MEDICAL MISSIONS
+    // ============================================
+
+    // Create ngos table (Verified NGO Network)
+    await connection.query(`
+        CREATE TABLE IF NOT EXISTS ngos (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            username VARCHAR(100) UNIQUE NOT NULL,
+            password VARCHAR(255) NOT NULL,
+            name VARCHAR(255) NOT NULL,
+            name_ar VARCHAR(255),
+            email VARCHAR(255) UNIQUE NOT NULL,
+            phone VARCHAR(50),
+            website VARCHAR(255),
+            logo_url VARCHAR(500),
+            description TEXT,
+            description_ar TEXT,
+            organization_type ENUM('medical_ngo', 'humanitarian', 'relief', 'development', 'international', 'local') NOT NULL,
+            specializations SET('primary_care', 'surgery', 'pediatrics', 'mental_health', 'emergency', 'rehabilitation', 'maternal_care', 'nutrition', 'vaccination') NOT NULL,
+            operating_regions TEXT,
+            headquarters_country VARCHAR(100),
+            is_verified BOOLEAN DEFAULT FALSE,
+            verification_date DATE,
+            verified_by INT,
+            is_active BOOLEAN DEFAULT TRUE,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+        )
+    `);
+    console.log('NGOs table created');
+
+    // Create medical_missions table (Mission Scheduling)
+    await connection.query(`
+        CREATE TABLE IF NOT EXISTS medical_missions (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            ngo_id INT NOT NULL,
+            title VARCHAR(255) NOT NULL,
+            title_ar VARCHAR(255),
+            mission_type ENUM('mobile_clinic', 'surgery_camp', 'vaccination_drive', 'specialist_visit', 'aid_distribution', 'training', 'general_outreach') NOT NULL,
+            description TEXT,
+            description_ar TEXT,
+            specialties_offered SET('general_practice', 'pediatrics', 'surgery', 'mental_health', 'internal_medicine', 'dermatology', 'cardiology', 'ophthalmology', 'orthopedics', 'gynecology', 'dental') NOT NULL,
+            target_area VARCHAR(255) NOT NULL,
+            target_area_ar VARCHAR(255),
+            location_details TEXT,
+            start_date DATE NOT NULL,
+            end_date DATE NOT NULL,
+            daily_start_time TIME,
+            daily_end_time TIME,
+            max_patients_per_day INT DEFAULT 50,
+            services_provided TEXT,
+            services_provided_ar TEXT,
+            requirements TEXT,
+            status ENUM('planned', 'confirmed', 'ongoing', 'completed', 'cancelled', 'postponed') DEFAULT 'planned',
+            contact_name VARCHAR(255),
+            contact_phone VARCHAR(50),
+            contact_email VARCHAR(255),
+            is_free BOOLEAN DEFAULT TRUE,
+            registration_required BOOLEAN DEFAULT TRUE,
+            language SET('arabic', 'english') DEFAULT 'arabic',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            FOREIGN KEY (ngo_id) REFERENCES ngos(id) ON DELETE CASCADE
+        )
+    `);
+    console.log('Medical missions table created');
+
+    // Create volunteer_doctors table (International volunteer doctors availability)
+    await connection.query(`
+        CREATE TABLE IF NOT EXISTS volunteer_doctors (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            doctor_id INT,
+            ngo_id INT,
+            name VARCHAR(255) NOT NULL,
+            email VARCHAR(255) NOT NULL,
+            phone VARCHAR(50),
+            specialty ENUM('general_practice', 'pediatrics', 'surgery', 'mental_health', 'internal_medicine', 'dermatology', 'cardiology', 'ophthalmology', 'orthopedics', 'gynecology', 'dental', 'anesthesiology') NOT NULL,
+            sub_specialty VARCHAR(255),
+            country VARCHAR(100),
+            languages SET('arabic', 'english', 'french', 'spanish', 'german') NOT NULL,
+            license_number VARCHAR(100),
+            license_country VARCHAR(100),
+            years_of_experience INT,
+            bio TEXT,
+            available_from DATE,
+            available_to DATE,
+            preferred_regions TEXT,
+            can_do_surgery BOOLEAN DEFAULT FALSE,
+            availability_status ENUM('available', 'on_mission', 'unavailable') DEFAULT 'available',
+            is_verified BOOLEAN DEFAULT FALSE,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            FOREIGN KEY (doctor_id) REFERENCES doctors(id) ON DELETE SET NULL,
+            FOREIGN KEY (ngo_id) REFERENCES ngos(id) ON DELETE SET NULL
+        )
+    `);
+    console.log('Volunteer doctors table created');
+
+    // Create mission_appointments table (Appointment booking for missions)
+    await connection.query(`
+        CREATE TABLE IF NOT EXISTS mission_appointments (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            mission_id INT NOT NULL,
+            patient_id INT NOT NULL,
+            volunteer_doctor_id INT,
+            appointment_date DATE NOT NULL,
+            preferred_time ENUM('morning', 'afternoon', 'evening', 'any') DEFAULT 'any',
+            reason_for_visit TEXT NOT NULL,
+            medical_history_summary TEXT,
+            urgency_level ENUM('routine', 'moderate', 'urgent') DEFAULT 'routine',
+            status ENUM('requested', 'confirmed', 'checked_in', 'completed', 'cancelled', 'no_show') DEFAULT 'requested',
+            queue_number INT,
+            notes TEXT,
+            patient_feedback TEXT,
+            rating INT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            FOREIGN KEY (mission_id) REFERENCES medical_missions(id) ON DELETE CASCADE,
+            FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE CASCADE,
+            FOREIGN KEY (volunteer_doctor_id) REFERENCES volunteer_doctors(id) ON DELETE SET NULL
+        )
+    `);
+    console.log('Mission appointments table created');
+
+    // Create surgical_camps table (Surgical Missions Tracker)
+    await connection.query(`
+        CREATE TABLE IF NOT EXISTS surgical_camps (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            mission_id INT NOT NULL,
+            ngo_id INT NOT NULL,
+            title VARCHAR(255) NOT NULL,
+            title_ar VARCHAR(255),
+            surgery_types SET('general', 'orthopedic', 'cardiac', 'ophthalmology', 'pediatric', 'reconstructive', 'emergency', 'dental') NOT NULL,
+            description TEXT,
+            description_ar TEXT,
+            location VARCHAR(255) NOT NULL,
+            hospital_partner VARCHAR(255),
+            start_date DATE NOT NULL,
+            end_date DATE NOT NULL,
+            total_surgeries_planned INT,
+            surgeries_completed INT DEFAULT 0,
+            lead_surgeon VARCHAR(255),
+            medical_team_size INT,
+            eligibility_criteria TEXT,
+            eligibility_criteria_ar TEXT,
+            pre_screening_required BOOLEAN DEFAULT TRUE,
+            screening_dates TEXT,
+            status ENUM('announced', 'screening', 'ongoing', 'completed', 'cancelled') DEFAULT 'announced',
+            contact_phone VARCHAR(50),
+            contact_email VARCHAR(255),
+            registration_deadline DATE,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            FOREIGN KEY (mission_id) REFERENCES medical_missions(id) ON DELETE CASCADE,
+            FOREIGN KEY (ngo_id) REFERENCES ngos(id) ON DELETE CASCADE
+        )
+    `);
+    console.log('Surgical camps table created');
+
+    // Create surgery_registrations table
+    await connection.query(`
+        CREATE TABLE IF NOT EXISTS surgery_registrations (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            surgical_camp_id INT NOT NULL,
+            patient_id INT NOT NULL,
+            surgery_type VARCHAR(100) NOT NULL,
+            condition_description TEXT NOT NULL,
+            medical_documents TEXT,
+            screening_status ENUM('pending', 'scheduled', 'screened', 'approved', 'rejected') DEFAULT 'pending',
+            screening_date DATE,
+            screening_notes TEXT,
+            surgery_status ENUM('waiting', 'scheduled', 'completed', 'cancelled', 'postponed') DEFAULT 'waiting',
+            surgery_date DATE,
+            surgeon_name VARCHAR(255),
+            post_op_notes TEXT,
+            follow_up_required BOOLEAN DEFAULT FALSE,
+            follow_up_date DATE,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+            FOREIGN KEY (surgical_camp_id) REFERENCES surgical_camps(id) ON DELETE CASCADE,
+            FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE CASCADE
+        )
+    `);
+    console.log('Surgery registrations table created');
+
+    // Create mission_notifications table (Community notifications)
+    await connection.query(`
+        CREATE TABLE IF NOT EXISTS mission_notifications (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            notification_type ENUM('new_mission', 'surgery_camp', 'specialist_visit', 'aid_drop', 'schedule_change', 'reminder') NOT NULL,
+            title VARCHAR(255) NOT NULL,
+            title_ar VARCHAR(255),
+            message TEXT NOT NULL,
+            message_ar TEXT,
+            target_area VARCHAR(255),
+            mission_id INT,
+            surgical_camp_id INT,
+            is_urgent BOOLEAN DEFAULT FALSE,
+            valid_until DATE,
+            is_active BOOLEAN DEFAULT TRUE,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (mission_id) REFERENCES medical_missions(id) ON DELETE SET NULL,
+            FOREIGN KEY (surgical_camp_id) REFERENCES surgical_camps(id) ON DELETE SET NULL
+        )
+    `);
+    console.log('Mission notifications table created');
+
     // Insert sample doctors (password: password123)
     await connection.query(`
         INSERT IGNORE INTO doctors (username, password, name, email, phone, specialty, languages, is_international, availability_status, bio, years_of_experience) VALUES
@@ -647,6 +980,130 @@ async function setupDatabase() {
          '2025-02-25 16:00:00', 75, NULL, 'https://meet.healthpal.ps/maternal-care', 80, 'both', 'upcoming')
     `);
     console.log('Sample workshops inserted');
+
+    // Insert sample support groups for Feature 5
+    await connection.query(`
+        INSERT IGNORE INTO support_groups (name, name_ar, description, description_ar, group_type, target_audience, moderator_type, moderator_id, moderator_name, max_members, meeting_schedule, meeting_link, language) VALUES
+        ('War Trauma Survivors', 'الناجون من صدمات الحرب',
+         'A safe space for adults dealing with war-related trauma, PTSD, and anxiety. Share experiences and support each other.',
+         'مساحة آمنة للبالغين الذين يتعاملون مع صدمات الحرب واضطراب ما بعد الصدمة والقلق. شارك تجاربك وادعم بعضكم البعض.',
+         'war_trauma', 'patients', 'doctor', 3, 'Dr. Fatima Al-Masri', 30, 'Sundays & Wednesdays 7 PM', 'https://meet.healthpal.ps/trauma-support', 'arabic'),
+        ('Parents of Chronically Ill Children', 'آباء الأطفال المصابين بأمراض مزمنة',
+         'Support group for parents and caregivers of children with chronic illnesses. Share tips and emotional support.',
+         'مجموعة دعم للآباء ومقدمي الرعاية للأطفال المصابين بأمراض مزمنة. شارك النصائح والدعم العاطفي.',
+         'parent_support', 'families', 'doctor', 5, 'Dr. Layla Nasser', 40, 'Tuesdays 6 PM', 'https://meet.healthpal.ps/parent-support', 'arabic'),
+        ('Grief and Loss Support', 'دعم الحزن والفقدان',
+         'For those who have lost loved ones. A compassionate space to share grief and healing.',
+         'لمن فقدوا أحباءهم. مساحة رحيمة لمشاركة الحزن والشفاء.',
+         'grief_loss', 'all', 'doctor', 3, 'Dr. Fatima Al-Masri', 25, 'Mondays 8 PM', 'https://meet.healthpal.ps/grief-support', 'both'),
+        ('Youth Mental Wellness', 'الصحة النفسية للشباب',
+         'Support group for teenagers and young adults dealing with stress, anxiety, and life challenges.',
+         'مجموعة دعم للمراهقين والشباب الذين يتعاملون مع التوتر والقلق وتحديات الحياة.',
+         'mental_health', 'patients', 'volunteer', 1, 'Volunteer Team', 35, 'Thursdays 5 PM', 'https://meet.healthpal.ps/youth-wellness', 'arabic'),
+        ('Diabetes Support Circle', 'دائرة دعم مرضى السكري',
+         'Connect with others managing diabetes. Share tips, recipes, and emotional support.',
+         'تواصل مع الآخرين الذين يديرون مرض السكري. شارك النصائح والوصفات والدعم العاطفي.',
+         'chronic_illness', 'patients', 'peer', NULL, 'Peer Moderators', 50, 'Saturdays 4 PM', 'https://meet.healthpal.ps/diabetes-circle', 'arabic')
+    `);
+    console.log('Sample support groups inserted');
+
+    // Insert sample NGOs for Feature 6
+    await connection.query(`
+        INSERT IGNORE INTO ngos (username, password, name, name_ar, email, phone, website, description, description_ar, organization_type, specializations, operating_regions, headquarters_country, is_verified, is_active) VALUES
+        ('msf_gaza', 'password123', 'Médecins Sans Frontières', 'أطباء بلا حدود', 'msf.gaza@msf.org', '+970-599-100100', 'https://www.msf.org', 
+         'International medical humanitarian organization providing emergency medical care worldwide.',
+         'منظمة طبية إنسانية دولية تقدم الرعاية الطبية الطارئة حول العالم.',
+         'international', 'primary_care,surgery,emergency,mental_health', 'Gaza Strip, West Bank', 'France', TRUE, TRUE),
+        ('map_org', 'password123', 'Medical Aid for Palestinians', 'المعونة الطبية للفلسطينيين', 'contact@map.org.uk', '+44-20-12345678', 'https://www.map.org.uk',
+         'UK-based charity working for the health and dignity of Palestinians.',
+         'جمعية خيرية مقرها المملكة المتحدة تعمل من أجل صحة وكرامة الفلسطينيين.',
+         'medical_ngo', 'primary_care,pediatrics,mental_health,rehabilitation', 'All Palestine', 'UK', TRUE, TRUE),
+        ('mercy_corps', 'password123', 'Mercy Corps', 'مرسي كوربس', 'gaza@mercycorps.org', '+970-598-200200', 'https://www.mercycorps.org',
+         'Global humanitarian organization providing relief and development assistance.',
+         'منظمة إنسانية عالمية تقدم المساعدة الإغاثية والتنموية.',
+         'humanitarian', 'primary_care,nutrition,mental_health', 'Gaza Strip', 'USA', TRUE, TRUE),
+        ('pcrf', 'password123', 'Palestine Children Relief Fund', 'صندوق إغاثة أطفال فلسطين', 'info@pcrf.net', '+970-597-300300', 'https://www.pcrf.net',
+         'Providing free medical care to Palestinian children.',
+         'تقديم الرعاية الطبية المجانية للأطفال الفلسطينيين.',
+         'medical_ngo', 'pediatrics,surgery,rehabilitation', 'Palestine', 'USA', TRUE, TRUE)
+    `);
+    console.log('Sample NGOs inserted');
+
+    // Insert sample medical missions
+    await connection.query(`
+        INSERT IGNORE INTO medical_missions (ngo_id, title, title_ar, mission_type, description, description_ar, specialties_offered, target_area, target_area_ar, location_details, start_date, end_date, daily_start_time, daily_end_time, max_patients_per_day, services_provided, status, contact_name, contact_phone, is_free, registration_required) VALUES
+        (1, 'Mobile Clinic - North Gaza', 'عيادة متنقلة - شمال غزة', 'mobile_clinic',
+         'Free medical consultations, basic medications, and referrals for specialized care.',
+         'استشارات طبية مجانية، أدوية أساسية، وتحويلات للرعاية المتخصصة.',
+         'general_practice,pediatrics,internal_medicine', 'North Gaza', 'شمال غزة', 'Beit Lahia Community Center',
+         '2025-02-01', '2025-02-05', '09:00:00', '16:00:00', 80,
+         'General checkups, blood pressure monitoring, diabetes screening, child health', 'confirmed', 'Dr. Mohammed Saleh', '+970-599-111222', TRUE, TRUE),
+        (2, 'Mental Health Specialist Visit', 'زيارة أخصائي صحة نفسية', 'specialist_visit',
+         'Specialized mental health consultations for trauma survivors and families.',
+         'استشارات صحة نفسية متخصصة للناجين من الصدمات والعائلات.',
+         'mental_health', 'Gaza City', 'مدينة غزة', 'Al-Shifa Hospital, Mental Health Wing',
+         '2025-02-10', '2025-02-14', '10:00:00', '17:00:00', 30,
+         'PTSD treatment, grief counseling, family therapy, child psychology', 'planned', 'Sarah Ahmed', '+970-598-222333', TRUE, TRUE),
+        (4, 'Pediatric Surgery Camp', 'معسكر جراحة الأطفال', 'surgery_camp',
+         'Free pediatric surgeries for children with congenital conditions and injuries.',
+         'جراحات أطفال مجانية للأطفال ذوي الحالات الخلقية والإصابات.',
+         'pediatrics,surgery', 'Gaza City', 'مدينة غزة', 'Al-Rantisi Children Hospital',
+         '2025-03-01', '2025-03-10', '08:00:00', '18:00:00', 20,
+         'Cleft palate repair, hernia repair, orthopedic corrections', 'announced', 'Dr. John Smith', '+1-555-444555', TRUE, TRUE),
+        (3, 'Vaccination Drive - Rafah', 'حملة تطعيم - رفح', 'vaccination_drive',
+         'Catch-up vaccination campaign for children under 5 years.',
+         'حملة تطعيم تعويضية للأطفال دون الخامسة.',
+         'pediatrics', 'Rafah', 'رفح', 'Multiple locations in Rafah',
+         '2025-02-20', '2025-02-25', '08:00:00', '14:00:00', 200,
+         'Polio, MMR, DTP, Hepatitis B vaccines', 'planned', 'Vaccination Team', '+970-599-333444', TRUE, FALSE)
+    `);
+    console.log('Sample medical missions inserted');
+
+    // Insert sample volunteer doctors
+    await connection.query(`
+        INSERT IGNORE INTO volunteer_doctors (doctor_id, ngo_id, name, email, phone, specialty, sub_specialty, country, languages, years_of_experience, bio, available_from, available_to, preferred_regions, can_do_surgery, availability_status, is_verified) VALUES
+        (2, 2, 'Dr. Sarah Miller', 'sarah.miller@healthpal.org', '+1-555-123456', 'pediatrics', 'Pediatric Cardiology', 'USA', 'english', 8, 
+         'International pediatrician with experience in humanitarian missions.', '2025-02-01', '2025-03-31', 'Gaza Strip', FALSE, 'available', TRUE),
+        (NULL, 1, 'Dr. Pierre Dubois', 'pierre.dubois@msf.org', '+33-1-12345678', 'surgery', 'Trauma Surgery', 'France', 'english,french', 15,
+         'MSF surgeon with extensive experience in conflict zones.', '2025-02-15', '2025-04-15', 'Gaza Strip, West Bank', TRUE, 'available', TRUE),
+        (NULL, 4, 'Dr. Emily Watson', 'emily.watson@pcrf.net', '+1-555-666777', 'surgery', 'Pediatric Orthopedics', 'UK', 'english', 12,
+         'Specialized in pediatric orthopedic surgeries and corrections.', '2025-03-01', '2025-03-15', 'Gaza City', TRUE, 'available', TRUE),
+        (4, 2, 'Dr. James Wilson', 'james.wilson@healthpal.org', '+44-20-12345678', 'internal_medicine', 'Cardiology', 'UK', 'english', 15,
+         'UK-based internal medicine specialist volunteering remotely.', '2025-01-01', '2025-06-30', 'All Palestine', FALSE, 'available', TRUE)
+    `);
+    console.log('Sample volunteer doctors inserted');
+
+    // Insert sample surgical camps
+    await connection.query(`
+        INSERT IGNORE INTO surgical_camps (mission_id, ngo_id, title, title_ar, surgery_types, description, description_ar, location, hospital_partner, start_date, end_date, total_surgeries_planned, lead_surgeon, medical_team_size, eligibility_criteria, eligibility_criteria_ar, status, contact_phone, contact_email, registration_deadline) VALUES
+        (3, 4, 'PCRF Pediatric Surgery Camp March 2025', 'معسكر جراحة الأطفال مارس 2025',
+         'pediatric,orthopedic,general',
+         'Free surgical interventions for children with various conditions including cleft palate, hernias, and orthopedic issues.',
+         'تدخلات جراحية مجانية للأطفال الذين يعانون من حالات مختلفة بما في ذلك الشفة المشقوقة والفتق ومشاكل العظام.',
+         'Gaza City', 'Al-Rantisi Children Hospital', '2025-03-01', '2025-03-10', 50, 'Dr. Emily Watson', 12,
+         'Children under 18 years, Palestinian ID required, medical records needed',
+         'الأطفال دون 18 عاماً، هوية فلسطينية مطلوبة، السجلات الطبية مطلوبة',
+         'announced', '+1-555-444555', 'surgery@pcrf.net', '2025-02-15')
+    `);
+    console.log('Sample surgical camps inserted');
+
+    // Insert sample mission notifications
+    await connection.query(`
+        INSERT IGNORE INTO mission_notifications (notification_type, title, title_ar, message, message_ar, target_area, mission_id, is_urgent, valid_until, is_active) VALUES
+        ('new_mission', 'Mobile Clinic Coming to North Gaza!', 'عيادة متنقلة قادمة إلى شمال غزة!',
+         'Free medical consultations available Feb 1-5 at Beit Lahia Community Center. Walk-ins welcome!',
+         'استشارات طبية مجانية متاحة من 1-5 فبراير في مركز بيت لاهيا المجتمعي. الحضور المباشر مرحب به!',
+         'North Gaza', 1, FALSE, '2025-02-05', TRUE),
+        ('surgery_camp', 'Pediatric Surgery Registration Open', 'التسجيل مفتوح لجراحات الأطفال',
+         'PCRF is offering free pediatric surgeries in March. Register by Feb 15. Limited spots available.',
+         'صندوق إغاثة أطفال فلسطين يقدم جراحات أطفال مجانية في مارس. سجل قبل 15 فبراير. الأماكن محدودة.',
+         'All Gaza', 3, TRUE, '2025-02-15', TRUE),
+        ('specialist_visit', 'Mental Health Specialists Available', 'أخصائيو صحة نفسية متاحون',
+         'MAP mental health team will be at Al-Shifa Hospital Feb 10-14. Book appointments now.',
+         'فريق الصحة النفسية من المعونة الطبية سيكون في مستشفى الشفاء من 10-14 فبراير. احجز موعدك الآن.',
+         'Gaza City', 2, FALSE, '2025-02-14', TRUE)
+    `);
+    console.log('Sample mission notifications inserted');
 
     await connection.end();
     console.log('\n✓ Database setup completed successfully!');

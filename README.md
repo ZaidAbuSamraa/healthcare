@@ -30,6 +30,39 @@ A digital healthcare platform designed to provide Palestinians with access to me
 - **Bilingual Content**: All content available in Arabic and English
 - **Workshop Registration**: Users can register for upcoming workshops and receive materials
 
+### 🧠 Feature 5: Mental Health & Trauma Support
+- **Trauma Counseling Portal**: Dedicated section for PTSD, grief, anxiety, depression, and stress counseling, especially for children and war survivors
+- **Support Groups**: Moderated online spaces for patients and families to talk about chronic illness, disability, grief, or war trauma
+- **Anonymous Therapy Chat**: Accessible one-on-one mental health help without stigma - patients get an anonymous ID
+- **Crisis Priority System**: Urgent/crisis cases are prioritized and escalated to senior counselors
+- **Session Types**: Video, audio, chat, or in-person counseling options
+- **Target Groups**: Adults, children, families, and war survivors
+- **Bilingual Support**: All mental health services available in Arabic and English
+
+### 🤝 Feature 6: Partnerships with NGOs & Medical Missions
+- **Verified NGO Network**: Integration with medical NGOs doing fieldwork, mobile clinics, and aid drops
+- **Mission Scheduling**: International volunteer doctors can list availability; locals can request appointments in advance
+- **Surgical Missions Tracker**: Notify communities about upcoming surgery camps and specialist visits
+- **Volunteer Doctor Registry**: International doctors can register and specify their availability periods
+- **Mission Appointments**: Patients can book appointments for medical missions with queue management
+- **Surgery Camp Registration**: Patients can register for surgical camps with screening and scheduling
+- **Community Notifications**: Real-time alerts about new missions, surgery camps, and specialist visits
+- **Bilingual Support**: All partnership features available in Arabic and English
+
+## Architecture
+
+### Layered MVC Architecture
+- **Presentation Layer**: Express.js routes (thin controllers)
+- **Service Layer**: Business logic and validation
+- **Repository Layer**: Data access abstraction (SQL queries)
+- **Middleware Layer**: JWT authentication and authorization
+
+### Authentication & Security
+- **JWT Tokens**: Access tokens (1 hour) and refresh tokens (7 days)
+- **Password Hashing**: bcrypt for secure password storage
+- **Role-Based Access**: Patient, Doctor, NGO, Admin roles
+- **Protected Routes**: Middleware-based authentication
+
 ## Prerequisites
 
 - Node.js (v14 or higher)
@@ -40,19 +73,29 @@ A digital healthcare platform designed to provide Palestinians with access to me
 
 ## API Endpoints
 
+### Authentication (JWT)
+- `POST /api/auth/login` - Login (returns JWT tokens) - Body: `{ username, password, userType }`
+- `POST /api/auth/register/patient` - Register patient - Returns JWT tokens
+- `POST /api/auth/register/doctor` - Register doctor - Returns JWT tokens
+- `POST /api/auth/refresh` - Refresh access token - Body: `{ refreshToken }`
+- `GET /api/auth/me` - Get current user (protected)
+
 ### Patients
 - `POST /api/patients` - Register new patient
-- `POST /api/patients/login` - Patient login
+- `POST /api/patients/login` - Patient login (legacy - use /api/auth/login)
 - `GET /api/patients/:id` - Get patient by ID
 - `PUT /api/patients/:id` - Update patient
 
 ### Doctors
 - `POST /api/doctors` - Register new doctor
-- `POST /api/doctors/login` - Doctor login
-- `GET /api/doctors` - List all doctors
-- `GET /api/doctors/available` - List available doctors
-- `GET /api/doctors/specialty/:specialty` - List doctors by specialty
-- `PATCH /api/doctors/:id/availability` - Update doctor availability
+- `POST /api/doctors/login` - Doctor login (returns JWT) 
+- `GET /api/doctors` - List all doctors (public)
+- `GET /api/doctors/available` - List available doctors (public)
+- `GET /api/doctors/specialty/:specialty` - List doctors by specialty (public)
+- `GET /api/doctors/:id` - Get doctor by ID (public)
+- `PATCH /api/doctors/:id/availability` - Update availability (protected - owner only)
+- `PUT /api/doctors/:id` - Update doctor (protected - owner or admin)
+- `DELETE /api/doctors/:id` - Delete doctor (protected - admin only)
 
 ### Consultations
 - `GET /api/consultations` - List all consultations
@@ -170,6 +213,70 @@ A digital healthcare platform designed to provide Palestinians with access to me
 - `PATCH /api/workshops/registrations/:registrationId/attend` - Mark attendance
 - `PATCH /api/workshops/registrations/:registrationId/feedback` - Submit feedback
 
+### Mental Health & Trauma Support
+- `GET /api/mental-health/counselors` - Get available mental health counselors
+- `POST /api/mental-health/counseling/request` - Request trauma counseling session
+- `GET /api/mental-health/counseling/patient/:patientId` - Get patient's counseling sessions
+- `GET /api/mental-health/counseling/counselor/:counselorId` - Get counselor's sessions
+- `PATCH /api/mental-health/counseling/:sessionId` - Update counseling session
+- `GET /api/mental-health/support-groups` - Get all support groups
+- `GET /api/mental-health/support-groups/:groupId` - Get support group details
+- `POST /api/mental-health/support-groups` - Create support group
+- `POST /api/mental-health/support-groups/:groupId/join` - Join support group
+- `GET /api/mental-health/support-groups/:groupId/messages` - Get group messages
+- `POST /api/mental-health/support-groups/:groupId/messages` - Post message to group
+- `GET /api/mental-health/support-groups/member/:memberType/:memberId` - Get user's groups
+- `POST /api/mental-health/anonymous-chat/start` - Start anonymous therapy chat
+- `GET /api/mental-health/anonymous-chat/waiting` - Get waiting chats (for counselors)
+- `POST /api/mental-health/anonymous-chat/:chatId/accept` - Accept anonymous chat
+- `GET /api/mental-health/anonymous-chat/:chatId/messages` - Get chat messages
+- `POST /api/mental-health/anonymous-chat/:chatId/messages` - Send chat message
+- `POST /api/mental-health/anonymous-chat/:chatId/close` - Close chat session
+- `POST /api/mental-health/anonymous-chat/:chatId/escalate` - Escalate to crisis level
+- `GET /api/mental-health/anonymous-chat/patient/:patientId` - Get patient's chats
+- `GET /api/mental-health/anonymous-chat/counselor/:counselorId` - Get counselor's active chats
+
+### NGO Partnerships & Medical Missions
+#### Verified NGO Network
+- `GET /api/partnerships/ngos` - List all verified NGOs
+- `GET /api/partnerships/ngos/:ngoId` - Get NGO by ID
+- `POST /api/partnerships/ngos` - Register new NGO
+- `PATCH /api/partnerships/ngos/:ngoId/verify` - Verify NGO (admin)
+- `GET /api/partnerships/ngos/:ngoId/missions` - Get NGO's missions
+
+#### Medical Missions
+- `GET /api/partnerships/missions` - List upcoming missions
+- `GET /api/partnerships/missions/:missionId` - Get mission details
+- `POST /api/partnerships/missions` - Create new mission
+- `PATCH /api/partnerships/missions/:missionId/status` - Update mission status
+- `POST /api/partnerships/missions/:missionId/appointments` - Book appointment
+- `GET /api/partnerships/missions/:missionId/appointments` - Get mission appointments
+
+#### Volunteer Doctors
+- `GET /api/partnerships/volunteer-doctors` - List volunteer doctors
+- `GET /api/partnerships/volunteer-doctors/:doctorId` - Get volunteer doctor details
+- `POST /api/partnerships/volunteer-doctors` - Register volunteer doctor
+- `PATCH /api/partnerships/volunteer-doctors/:doctorId/availability` - Update availability
+
+#### Mission Appointments
+- `GET /api/partnerships/appointments/patient/:patientId` - Get patient appointments
+- `PATCH /api/partnerships/appointments/:appointmentId` - Update appointment
+- `PATCH /api/partnerships/appointments/:appointmentId/feedback` - Submit feedback
+
+#### Surgical Camps
+- `GET /api/partnerships/surgical-camps` - List surgical camps
+- `GET /api/partnerships/surgical-camps/:campId` - Get camp details
+- `POST /api/partnerships/surgical-camps` - Create surgical camp
+- `POST /api/partnerships/surgical-camps/:campId/register` - Register for surgery
+- `GET /api/partnerships/surgical-camps/:campId/registrations` - Get registrations
+- `PATCH /api/partnerships/surgical-camps/registrations/:registrationId` - Update registration
+- `GET /api/partnerships/surgical-camps/patient/:patientId/registrations` - Get patient registrations
+
+#### Community Notifications
+- `GET /api/partnerships/notifications` - Get active notifications
+- `POST /api/partnerships/notifications` - Create notification
+- `PATCH /api/partnerships/notifications/:notificationId/deactivate` - Deactivate notification
+
 ## Specialties Available
 - General Practice
 - Pediatrics
@@ -224,10 +331,82 @@ A digital healthcare platform designed to provide Palestinians with access to me
 - **in_person** - Physical location
 - **hybrid** - Both online and in-person
 
+## Counseling Session Types
+- PTSD (Post-Traumatic Stress)
+- Grief Counseling
+- Anxiety
+- Depression
+- War Trauma
+- Child Trauma
+- Family Support
+- General Mental Health
+
+## Support Group Types
+- Chronic Illness
+- Disability
+- Grief & Loss
+- War Trauma
+- Caregiver Support
+- Mental Health
+- Parent Support
+- General
+
+## Target Groups (Counseling)
+- **adult** - Adult patients
+- **child** - Children (with parent/guardian)
+- **family** - Family counseling sessions
+- **war_survivor** - War trauma survivors
+
+## Anonymous Chat Priorities
+- **normal** - Standard priority
+- **urgent** - Needs help soon
+- **crisis** - Immediate help needed (escalated)
+
+## NGO Types
+- Medical NGO
+- Humanitarian
+- Relief
+- Development
+- International
+- Local
+
+## Mission Types
+- Mobile Clinic
+- Surgery Camp
+- Vaccination Drive
+- Specialist Visit
+- Aid Distribution
+- Training
+- General Outreach
+
+## Surgery Types
+- General
+- Orthopedic
+- Cardiac
+- Ophthalmology
+- Pediatric
+- Reconstructive
+- Emergency
+- Dental
+
 ## Tech Stack
 - **Backend**: Node.js, Express.js
 - **Database**: MySQL
+- **Authentication**: JWT (jsonwebtoken)
+- **Password Hashing**: bcryptjs
+- **Architecture**: Layered MVC (Repository + Service patterns)
 - **CLI**: Node.js readline
+
+## Project Structure
+```
+src/
+├── middleware/          # Authentication & authorization
+├── repositories/        # Data access layer (SQL queries)
+├── services/           # Business logic layer
+├── routes/             # API endpoints (controllers)
+├── config/             # Database configuration
+└── database/           # Database setup & migrations
+```
 
 ## License
 
