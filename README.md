@@ -6,11 +6,12 @@
 
 *A comprehensive digital healthcare platform designed to provide Palestinians with access to medical support, remote consultations, and medical sponsorship system.*
 
+**Developed by: Zaid Abu Samra (ID: 12113004)**
 
 [![Node.js](https://img.shields.io/badge/Node.js-v14+-green.svg)](https://nodejs.org/)
 [![MySQL](https://img.shields.io/badge/MySQL-8.0+-orange.svg)](https://www.mysql.com/)
 
-[Features](#-features) • [Quick Start](#-quick-start) • [API Documentation](#-api-documentation) • [Architecture](#-architecture) • [Contributing](#-contributing)
+[Features](#-features) • [Quick Start](#-quick-start) • [API Documentation](#-api-documentation) • [Architecture](#-architecture)
 
 </div>
 
