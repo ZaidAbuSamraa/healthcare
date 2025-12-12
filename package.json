@@ -10,7 +10,7 @@
     "setup-db": "node src/database/setup.js"
   },
   "keywords": ["healthcare", "telemedicine", "consultations"],
-  "author": "Zaid Abu Samra (ID: 12113004)",
+  "author": "Zaid Abu Samra (ID: 12113004) & Ahmad Hamad",
   "license": "ISC",
   "dependencies": {
     "express": "^4.18.2",
