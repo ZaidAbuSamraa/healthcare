@@ -32,6 +32,9 @@ const ngoPartnershipsRouter = require('./routes/ngo-partnerships');
 // Feature 7: User Privacy & Data Security
 const privacySecurityRouter = require('./routes/privacy-security');
 
+// Feature 8: Roles & Access Control
+const rolesRouter = require('./routes/roles');
+
 // Authentication
 const authRouter = require('./routes/auth');
 
@@ -78,6 +81,9 @@ app.use('/api/partnerships', ngoPartnershipsRouter);
 // Feature 7 Routes: User Privacy & Data Security
 app.use('/api/privacy', privacySecurityRouter);
 
+// Feature 8 Routes: Roles & Access Control
+app.use('/api/roles', rolesRouter);
+
 // External APIs Routes: Translation, Weather, Email
 app.use('/api/external', externalApisRouter);
 
@@ -99,7 +105,8 @@ app.get('/api', (req, res) => {
             feature4: 'Health Education & Public Health Alerts',
             feature5: 'Mental Health & Trauma Support',
             feature6: 'Partnerships with NGOs & Medical Missions',
-            feature7: 'User Privacy & Data Security'
+            feature7: 'User Privacy & Data Security',
+            feature8: 'Roles & Access Control'
         },
         endpoints: {
             // Feature 1: Remote Medical Consultations

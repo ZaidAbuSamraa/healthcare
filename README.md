@@ -28,6 +28,7 @@
   - [Mental Health & Trauma Support](#5-mental-health--trauma-support)
   - [NGO Partnerships & Medical Missions](#6-ngo-partnerships--medical-missions)
   - [User Privacy & Data Security](#7-user-privacy--data-security)
+  - [Roles & Access Control](#8-roles--access-control)
 - [Quick Start](#-quick-start)
 - [Architecture](#-architecture)
 - [API Documentation](#-api-documentation)
@@ -47,6 +48,7 @@ HealthPal is a digital healthcare platform that bridges the gap between medical 
 - 🧠 **Mental Health Support** for trauma and crisis situations
 - 🤝 **NGO Integration** for medical missions and surgical camps
 - 🔒 **Privacy & Data Security** with GDPR compliance and encryption
+- 👥 **Role-Based Access Control** for secure user management
 
 ---
 
@@ -212,6 +214,31 @@ HealthPal is a digital healthcare platform that bridges the gap between medical 
 - **Data Retention Policies**: Clear guidelines on data storage
 - **Breach Notifications**: Immediate alerts for security incidents
 - **Privacy Contact**: Dedicated privacy officer support
+
+</details>
+
+### 8. Roles & Access Control
+
+<details>
+<summary><b>👥 Role-Based Access Management</b></summary>
+
+#### Available Roles
+| Role | Arabic | Description |
+|------|--------|-------------|
+| `admin` | مدير النظام | Full system access |
+| `doctor` | طبيب | Medical consultations and prescriptions |
+| `patient` | مريض | Access to healthcare services |
+| `donor` | متبرع | Donation and sponsorship |
+| `volunteer` | متطوع | Medication delivery |
+| `ngo` | منظمة | Medical missions and camps |
+
+#### Role Permissions
+- **Admin**: Full access to all features
+- **Doctor**: View patients, manage consultations, write prescriptions
+- **Patient**: View own data, book consultations, request medications
+- **Donor**: Make donations, view cases, donation history
+- **Volunteer**: Accept deliveries, update delivery status
+- **NGO**: Create missions, manage camps, register volunteers
 
 </details>
 
@@ -610,6 +637,37 @@ npm start
 - `marketing` - Receive marketing communications
 - `third_party` - Share with third-party services
 - `anonymized_data` - Use anonymized data for analytics
+
+</details>
+
+### 👥 Roles & Access Control
+
+<details>
+<summary><b>Role Management</b></summary>
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| `GET` | `/api/roles` | Get all available roles | ❌ |
+| `GET` | `/api/roles/:role/permissions` | Get role permissions | ❌ |
+| `GET` | `/api/roles/permissions/all` | Get all permissions map | ❌ |
+| `POST` | `/api/roles/validate` | Validate role access | ❌ |
+| `GET` | `/api/roles/admin-only` | Admin protected route | ✅ Admin |
+| `GET` | `/api/roles/medical-staff` | Medical staff route | ✅ Doctor/Admin |
+
+**Using Role Protection:**
+
+Add `x-user-role` header to requests:
+```
+x-user-role: admin
+```
+
+**Validate Role Example:**
+```json
+{
+  "role": "doctor",
+  "required_permission": "view_patients"
+}
+```
 
 </details>
 
