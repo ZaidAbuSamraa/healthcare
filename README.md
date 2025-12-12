@@ -29,6 +29,7 @@
   - [NGO Partnerships & Medical Missions](#6-ngo-partnerships--medical-missions)
   - [User Privacy & Data Security](#7-user-privacy--data-security)
   - [Roles & Access Control](#8-roles--access-control)
+  - [Error Handling & Logging](#9-error-handling--logging)
 - [Quick Start](#-quick-start)
 - [Architecture](#-architecture)
 - [API Documentation](#-api-documentation)
@@ -49,6 +50,7 @@ HealthPal is a digital healthcare platform that bridges the gap between medical 
 - 🤝 **NGO Integration** for medical missions and surgical camps
 - 🔒 **Privacy & Data Security** with GDPR compliance and encryption
 - 👥 **Role-Based Access Control** for secure user management
+- 📋 **Error Handling & Logging** for monitoring and debugging
 
 ---
 
@@ -239,6 +241,35 @@ HealthPal is a digital healthcare platform that bridges the gap between medical 
 - **Donor**: Make donations, view cases, donation history
 - **Volunteer**: Accept deliveries, update delivery status
 - **NGO**: Create missions, manage camps, register volunteers
+
+</details>
+
+### 9. Error Handling & Logging
+
+<details>
+<summary><b>📋 Centralized Error Management</b></summary>
+
+#### Features
+- **Centralized Error Handler**: Catches all errors in one place
+- **Colored Console Logs**: Easy-to-read colored output
+- **File Logging**: Automatic log files by date
+- **Request Logging**: Track all API requests
+
+#### Log Files
+```
+logs/
+├── 2024-12-12.log    # Daily logs
+├── errors.log        # All errors
+└── requests.log      # API requests
+```
+
+#### Log Levels
+| Level | Color | Description |
+|-------|-------|-------------|
+| ERROR | 🔴 Red | Application errors |
+| WARN | 🟡 Yellow | Warnings |
+| INFO | 🔵 Cyan | Information |
+| DEBUG | 🟣 Magenta | Debug (dev only) |
 
 </details>
 

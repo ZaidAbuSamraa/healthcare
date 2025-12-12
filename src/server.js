@@ -1,6 +1,10 @@
 const express = require('express');
 require('dotenv').config();
 
+// Error Handling & Logging
+const logger = require('./utils/logger');
+const { errorHandler, notFound } = require('./middleware/errorHandler');
+
 // Feature 1: Remote Medical Consultations
 const patientsRouter = require('./routes/patients');
 const doctorsRouter = require('./routes/doctors');
@@ -349,11 +353,13 @@ app.use((err, req, res, next) => {
 });
 
 // 404 handler
-app.use((req, res) => {
-    res.status(404).json({ success: false, error: 'Endpoint not found' });
-});
+app.use(notFound);
+
+// Error handler
+app.use(errorHandler);
 
 app.listen(PORT, () => {
+    logger.info('HealthPal API Server starting...');
     console.log(`\n╔══════════════════════════════════════════╗`);
     console.log(`║     HealthPal API Server                   ║`);
     console.log(`║     Remote Medical Consultations           ║`);
@@ -361,6 +367,7 @@ app.listen(PORT, () => {
     console.log(`║ Server running on: http://localhost:${PORT}║`);
     console.log(`║                                            ║`);
     console.log(`╚════════════════════════════════════════════╝\n`);
+    logger.info(`Server running on port ${PORT}`);
 });
 
 module.exports = app;
