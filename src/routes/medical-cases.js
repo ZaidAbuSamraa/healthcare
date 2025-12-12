@@ -58,6 +58,22 @@ router.get('/urgent', async (req, res) => {
     }
 });
 
+// Get patient's cases
+router.get('/patient/:patientId', async (req, res) => {
+    try {
+        const [rows] = await pool.query(`
+            SELECT mc.*, 
+                   ROUND((mc.raised_amount / mc.goal_amount) * 100, 1) as funding_percentage
+            FROM medical_cases mc
+            WHERE mc.patient_id = ?
+            ORDER BY mc.created_at DESC
+        `, [req.params.patientId]);
+        res.json({ success: true, data: rows });
+    } catch (error) {
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
 // Get case by ID with full details
 router.get('/:id', async (req, res) => {
     try {
@@ -204,17 +220,17 @@ router.post('/:id/updates', async (req, res) => {
     }
 });
 
-// Get patient's cases
-router.get('/patient/:patientId', async (req, res) => {
+// Add invoice to case
+router.post('/:id/invoices', async (req, res) => {
     try {
-        const [rows] = await pool.query(`
-            SELECT mc.*, 
-                   ROUND((mc.raised_amount / mc.goal_amount) * 100, 1) as funding_percentage
-            FROM medical_cases mc
-            WHERE mc.patient_id = ?
-            ORDER BY mc.created_at DESC
-        `, [req.params.patientId]);
-        res.json({ success: true, data: rows });
+        const { title, description, amount, vendor_name, invoice_date, receipt_url, category, status } = req.body;
+        const [result] = await pool.query(
+            `INSERT INTO invoices (case_id, title, description, amount, vendor_name, invoice_date, receipt_url, category, status)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [req.params.id, title, description, amount, vendor_name, invoice_date, receipt_url, category, status || 'pending']
+        );
+        
+        res.status(201).json({ success: true, data: { id: result.insertId }, message: 'Invoice added successfully' });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }

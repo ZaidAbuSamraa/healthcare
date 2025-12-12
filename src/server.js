@@ -32,6 +32,9 @@ const ngoPartnershipsRouter = require('./routes/ngo-partnerships');
 // Authentication
 const authRouter = require('./routes/auth');
 
+// External APIs Integration
+const externalApisRouter = require('./routes/external-apis');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -68,6 +71,9 @@ app.use('/api/mental-health', mentalHealthRouter);
 
 // Feature 6 Routes: Partnerships with NGOs & Medical Missions
 app.use('/api/partnerships', ngoPartnershipsRouter);
+
+// External APIs Routes: Translation, Weather, Email
+app.use('/api/external', externalApisRouter);
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -334,12 +340,12 @@ app.use((req, res) => {
 });
 
 app.listen(PORT, () => {
-    console.log(`\n╔════════════════════════════════════════════╗`);
+    console.log(`\n╔══════════════════════════════════════════╗`);
     console.log(`║     HealthPal API Server                   ║`);
     console.log(`║     Remote Medical Consultations           ║`);
     console.log(`╠════════════════════════════════════════════╣`);
-    console.log(`║  Server running on: http://localhost:${PORT}  ║`);
-    console.log(`║  API Docs: http://localhost:${PORT}/api       ║`);
+    console.log(`║ Server running on: http://localhost:${PORT}║`);
+    console.log(`║                                            ║`);
     console.log(`╚════════════════════════════════════════════╝\n`);
 });
 

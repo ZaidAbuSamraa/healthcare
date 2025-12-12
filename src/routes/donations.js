@@ -119,6 +119,24 @@ router.post('/', async (req, res) => {
             [amount, donor_id]
         );
         
+        // Create invoice for the donation
+        const donorName = is_anonymous ? 'Anonymous Donor' : await pool.query(
+            'SELECT name FROM donors WHERE id = ?',
+            [donor_id]
+        ).then(([rows]) => rows[0]?.name || 'Donor');
+        
+        await pool.query(
+            `INSERT INTO invoices (case_id, title, description, amount, vendor_name, invoice_date, category, status)
+             VALUES (?, ?, ?, ?, ?, CURDATE(), 'other', 'paid')`,
+            [
+                case_id,
+                `Donation Receipt - ${transaction_id}`,
+                `Donation received${is_anonymous ? ' from anonymous donor' : ` from ${donorName}`}${message ? ': ' + message : ''}`,
+                amount,
+                donorName
+            ]
+        );
+        
         // Check if case is now fully funded
         const [updatedCase] = await pool.query(
             'SELECT raised_amount, goal_amount FROM medical_cases WHERE id = ?',
