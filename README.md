@@ -27,12 +27,12 @@
   - [Health Education & Public Health Alerts](#4-health-education--public-health-alerts)
   - [Mental Health & Trauma Support](#5-mental-health--trauma-support)
   - [NGO Partnerships & Medical Missions](#6-ngo-partnerships--medical-missions)
+  - [User Privacy & Data Security](#7-user-privacy--data-security)
 - [Quick Start](#-quick-start)
 - [Architecture](#-architecture)
 - [API Documentation](#-api-documentation)
 - [Tech Stack](#-tech-stack)
 - [Project Structure](#-project-structure)
--
 
 ---
 
@@ -46,6 +46,7 @@ HealthPal is a digital healthcare platform that bridges the gap between medical 
 - 📚 **Health Education** resources in multiple languages
 - 🧠 **Mental Health Support** for trauma and crisis situations
 - 🤝 **NGO Integration** for medical missions and surgical camps
+- 🔒 **Privacy & Data Security** with GDPR compliance and encryption
 
 ---
 
@@ -169,6 +170,48 @@ HealthPal is a digital healthcare platform that bridges the gap between medical 
 - **Camp Registration**: Patient screening and scheduling
 - **Surgery Types**: General, orthopedic, cardiac, ophthalmology, pediatric, reconstructive
 - **Volunteer Doctors**: International medical professionals
+
+</details>
+
+### 7. User Privacy & Data Security
+
+<details>
+<summary><b>🔒 Comprehensive Privacy Protection & GDPR Compliance</b></summary>
+
+#### Data Encryption
+- **End-to-End Encryption**: AES-256 encryption for sensitive medical data
+- **Secure Storage**: Encrypted database fields for personal information
+- **Data Anonymization**: Anonymous IDs for sensitive services
+
+#### User Consent Management
+- **Granular Consent**: Control over data sharing, research use, marketing
+- **Consent Tracking**: Full audit trail of all consent decisions
+- **Easy Revocation**: One-click consent withdrawal
+
+#### Privacy Rights (GDPR Compliant)
+- **Right to Access**: View all personal data stored in the system
+- **Right to Export**: Download complete data in portable format
+- **Right to Erasure**: Request account and data deletion
+- **Right to Rectification**: Update and correct personal information
+
+#### Security Features
+- **Access Logging**: Complete audit trail of data access
+- **Role-Based Access Control**: Strict permission system
+- **Session Management**: Secure session tracking and timeout
+- **Two-Factor Authentication**: Optional 2FA for enhanced security
+- **Security Incident Tracking**: Automated threat detection and logging
+
+#### Privacy Settings
+- **Profile Visibility**: Control who can see your information
+- **Medical History Sharing**: Choose what to share with doctors
+- **Research Participation**: Opt-in/out of anonymized research data
+- **Marketing Preferences**: Control communication preferences
+
+#### Compliance & Transparency
+- **Privacy Reports**: Detailed reports on data usage
+- **Data Retention Policies**: Clear guidelines on data storage
+- **Breach Notifications**: Immediate alerts for security incidents
+- **Privacy Contact**: Dedicated privacy officer support
 
 </details>
 
@@ -525,6 +568,48 @@ npm start
 | `GET` | `/api/partnerships/missions/:missionId` | Get mission details | ❌ |
 | `POST` | `/api/partnerships/missions` | Create mission | ✅ NGO |
 | `POST` | `/api/partnerships/missions/:missionId/appointments` | Book appointment | ✅ Patient |
+
+</details>
+
+### 🔒 Privacy & Data Security
+
+<details>
+<summary><b>User Privacy & GDPR Compliance</b></summary>
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| `POST` | `/api/privacy/consent` | Record user consent | ✅ |
+| `GET` | `/api/privacy/consent` | Get user consents | ✅ |
+| `DELETE` | `/api/privacy/consent/:id` | Revoke consent | ✅ |
+| `GET` | `/api/privacy/access-logs` | Get data access logs | ✅ |
+| `POST` | `/api/privacy/data-export` | Request data export | ✅ |
+| `GET` | `/api/privacy/data-export/:requestId` | Check export status | ✅ |
+| `POST` | `/api/privacy/data-deletion` | Request data deletion | ✅ |
+| `GET` | `/api/privacy/data-deletion/requests` | List deletion requests | ✅ Admin |
+| `PATCH` | `/api/privacy/data-deletion/:requestId` | Update deletion status | ✅ Admin |
+| `GET` | `/api/privacy/settings` | Get privacy settings | ✅ |
+| `PUT` | `/api/privacy/settings` | Update privacy settings | ✅ |
+| `POST` | `/api/privacy/anonymize` | Get anonymous ID | ✅ |
+| `GET` | `/api/privacy/privacy-report` | Get privacy report | ✅ |
+| `POST` | `/api/privacy/encrypt-data` | Encrypt sensitive data | ✅ Admin |
+| `POST` | `/api/privacy/validate-access` | Validate data access | ✅ |
+
+**Privacy Settings Options:**
+```json
+{
+  "share_profile": false,
+  "share_medical_history": false,
+  "allow_research_use": false,
+  "marketing_consent": false
+}
+```
+
+**Consent Types:**
+- `data_sharing` - Share data with healthcare providers
+- `medical_research` - Use data for medical research
+- `marketing` - Receive marketing communications
+- `third_party` - Share with third-party services
+- `anonymized_data` - Use anonymized data for analytics
 
 </details>
 

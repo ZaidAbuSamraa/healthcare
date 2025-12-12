@@ -29,6 +29,9 @@ const mentalHealthRouter = require('./routes/mental-health');
 // Feature 6: Partnerships with NGOs & Medical Missions
 const ngoPartnershipsRouter = require('./routes/ngo-partnerships');
 
+// Feature 7: User Privacy & Data Security
+const privacySecurityRouter = require('./routes/privacy-security');
+
 // Authentication
 const authRouter = require('./routes/auth');
 
@@ -72,6 +75,9 @@ app.use('/api/mental-health', mentalHealthRouter);
 // Feature 6 Routes: Partnerships with NGOs & Medical Missions
 app.use('/api/partnerships', ngoPartnershipsRouter);
 
+// Feature 7 Routes: User Privacy & Data Security
+app.use('/api/privacy', privacySecurityRouter);
+
 // External APIs Routes: Translation, Weather, Email
 app.use('/api/external', externalApisRouter);
 
@@ -92,7 +98,8 @@ app.get('/api', (req, res) => {
             feature3: 'Medication & Equipment Coordination',
             feature4: 'Health Education & Public Health Alerts',
             feature5: 'Mental Health & Trauma Support',
-            feature6: 'Partnerships with NGOs & Medical Missions'
+            feature6: 'Partnerships with NGOs & Medical Missions',
+            feature7: 'User Privacy & Data Security'
         },
         endpoints: {
             // Feature 1: Remote Medical Consultations
